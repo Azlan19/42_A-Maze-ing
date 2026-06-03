@@ -2,10 +2,10 @@ install: # Install project dependencies
 	pip install -r requirements.txt
 
 run: # Execute the main script of your project
-	python3 ________.py config.txt
+	python3 a_maze_ing.py config.txt
 
 debug: # Run the main script in debug mode using Python’s built-in debugger
-	python3 -m pdb ________.py config.txt
+	python3 -m pdb a_maze_ing.py config.txt
 
 clean: # Remove temporary files or caches
 	find . -type d -name __pycache__ -exec rm -rf {} + 2>/dev/null || true
