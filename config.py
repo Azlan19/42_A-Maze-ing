@@ -16,11 +16,24 @@ class MazeConfig:
     seed: int | None
 
 def parse_config(path: str) -> MazeConfig:
-    with open(path, "r") as file:
+    raw: dict[str, str] = {}
+    with open(path) as file:
         for line in file:
-            if line.startswith("#") or not line.strip():
+            line = line.strip()
+            if not line or line.startswith("#"):
                 continue
-            raw: dict[str, str] = {}
             key,_,value = line.partition("=")
             raw[key] = value
 
+    missing = REQUIRED_KEYS - raw.keys()
+    if missing:
+        raise ValueError(f"Missing required key: {next(iter(missing))}")
+
+    try:
+        width = int(raw["WIDTH"])
+        height = int(raw["HEIGHT"])
+    except ValueError:
+        raise ValueError("WIDTH and HEIGHT must be integers")
+    if width < 1 or height < 1:
+        raise ValueError("WIDTH and HEIGHT must be positive")
+        
