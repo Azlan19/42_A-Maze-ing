@@ -15,6 +15,7 @@ class MazeConfig:
     perfect: bool
     seed: int | None
 
+
 # Parse through config file
 def parse_config(path: str) -> MazeConfig:
     raw: dict[str, str] = {}
