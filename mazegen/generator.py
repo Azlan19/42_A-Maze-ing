@@ -1,7 +1,7 @@
-# Wall bit flags — each wall is one bit in the cell's integer value
 from typing import Optional
 import random
 
+# Wall bit flags — each wall is one bit in the cell's integer value
 NORTH: int = 1   # bit 0 — 0001
 EAST:  int = 2   # bit 1 — 0010
 SOUTH: int = 4   # bit 2 — 0100
