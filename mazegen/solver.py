@@ -26,3 +26,20 @@ def solve(
     parent: dict[tuple[int, int], tuple[tuple[int, int], int]] = {}
     queue: deque[tuple[int, int]] = deque([entry])
 
+    while queue:
+        x, y = queue.popleft()
+
+        if (x, y) == exit:
+            return [] # Return path with helper function
+
+    
+    for direction, (dx, dy) in DIRECTION_DELTA.items():
+        if grid[y][x] & direction:
+            continue
+        nx, ny = x + dx, y + dy
+        if 0 <= nx < width and 0 <= ny < height and (nx, ny) not in visited:
+            visited.add((nx, ny))
+            parent[(nx, ny)] = ((x, y), direction)
+            queue.append((nx, ny))
+    
+    return []
