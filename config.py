@@ -54,3 +54,14 @@ def parse_config(path: str) -> MazeConfig:
         output_file=["OUTPUT_FILE"],
         perfect=perfect,
         seed=seed)
+
+
+def _parse_coordinates(value: str, key: str, width: int, height: int) -> tuple[int,int]:
+    try:
+        x, y = value.split(",")
+        x, y = int(x),int(y)
+    except ValueError:
+        raise ValueError(f"{key} must be in x,y format")
+    if not (0 <= x < width and 0 <= y < height):
+        raise ValueError(f"{key} ({x},{y}) are out of bounds for ({width},{height})")
+    return (x, y)
