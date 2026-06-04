@@ -15,3 +15,12 @@ class MazeConfig:
     perfect: bool
     seed: int | None
 
+def parse_config(path: str) -> MazeConfig:
+    with open(path, "r") as file:
+        for line in file:
+            if line.startswith("#") or not line.strip():
+                continue
+            raw: dict[str, str] = {}
+            key,_,value = line.partition("=")
+            raw[key] = value
+
