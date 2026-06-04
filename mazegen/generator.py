@@ -1,4 +1,3 @@
-from typing import Optional
 import random
 
 # Wall bit flags — each wall is one bit in the cell's integer value
@@ -42,7 +41,7 @@ class MazeGenerator:
         self,
         width: int,
         height: int,
-        seed: Optional[int] = None,
+        seed: int | None = None,
         perfect: bool = True,
     ) -> None:
         self.width = width

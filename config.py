@@ -1,6 +1,4 @@
-from __future__ import annotations
 from dataclasses import dataclass
-from typing import Optional
 
 REQUIRED_KEYS = {"WIDTH", "HEIGHT", "ENTRY", "EXIT",
                   "OUTPUT_FILE", "PERFECT"}
@@ -15,5 +13,5 @@ class MazeConfig:
     exit: tuple[int, int]
     output_file: str
     perfect: bool
-    seed: Optional[int]
+    seed: int | None
 
