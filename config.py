@@ -17,4 +17,3 @@ class MazeConfig:
     perfect: bool
     seed: Optional[int]
 
-``
