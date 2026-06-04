@@ -1,4 +1,7 @@
 # Wall bit flags — each wall is one bit in the cell's integer value
+from typing import Optional
+import random
+
 NORTH: int = 1   # bit 0 — 0001
 EAST:  int = 2   # bit 1 — 0010
 SOUTH: int = 4   # bit 2 — 0100
@@ -23,11 +26,6 @@ DIRECTION_DELTA: dict[int, tuple[int, int]] = {
 }
 # Why NORTH = (0, -1) and not (0, 1)? Because in a 2D list, grid[0] is the top row.
 # Moving North means going to a smaller row index. This trips up almost everyone — just lock it in now.
-
-
-
-import random
-from typing import Optional
 
 
 class MazeGenerator:
@@ -67,9 +65,7 @@ class MazeGenerator:
         # If seed is None, random.seed(None) uses system time — still works.
         random.seed(self.seed)
 
-
     def print_grid_raw(self) -> None:
         """Print the raw hex values of the grid. For debugging only."""
         for row in self.grid:
             print(" ".join(f"{cell:X}" for cell in row))
-
