@@ -37,6 +37,11 @@ def parse_config(path: str) -> MazeConfig:
     if width < 1 or height < 1:
         raise ValueError("WIDTH and HEIGHT must be positive")
 
+    entry = _parse_coordinates(raw["ENTRY"], "ENTRY", width, height)
+    exit_ = _parse_coordinates(raw["EXIT"], "EXIT", width, height)
+    if entry == exit_:
+        raise ValueError("ENTRY and EXIT must be different")
+
     if raw["PERFECT"] not in ("True", "False"):
         raise ValueError("PERFECT must be True or False")
     perfect = raw["PERFECT"] == "True"
@@ -51,7 +56,9 @@ def parse_config(path: str) -> MazeConfig:
     return MazeConfig(
         width=width,
         height=height,
-        output_file=["OUTPUT_FILE"],
+        entry=entry,
+        exit=exit_,
+        output_file=raw["OUTPUT_FILE"],
         perfect=perfect,
         seed=seed)
 
