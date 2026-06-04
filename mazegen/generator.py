@@ -27,6 +27,40 @@ DIRECTION_DELTA: dict[int, tuple[int, int]] = {
 # Moving North means going to a smaller row index. This trips up almost everyone — just lock it in now.
 
 
+# --- "42" pattern bitmaps ---------------------------------------------------
+# Each digit is a 5x5 pixel drawing. 1 = solid block, 0 = empty.
+# You can read the shapes straight out of the 1s.
+
+# "4"
+_FOUR: list[list[int]] = [
+    [1, 0, 1, 0, 0],
+    [1, 0, 1, 0, 0],
+    [1, 1, 1, 1, 1],
+    [0, 0, 1, 0, 0],
+    [0, 0, 1, 0, 0],
+]
+
+# "2"
+_TWO: list[list[int]] = [
+    [1, 1, 1, 1, 0],
+    [0, 0, 0, 1, 0],
+    [0, 1, 1, 1, 0],
+    [1, 0, 0, 0, 0],
+    [1, 1, 1, 1, 1],
+]
+
+# Each bitmap pixel is scaled into a _SCALE x _SCALE block of maze cells so the
+# "42" is big enough to read in the rendered maze.
+_SCALE = 2                          # cells per bitmap pixel
+_DIGIT_W = 5 * _SCALE               # 10 cells wide per digit
+_DIGIT_H = 5 * _SCALE               # 10 cells tall per digit
+_GAP = 4                            # blank cells between "4" and "2"
+_PATTERN_W = _DIGIT_W * 2 + _GAP    # 24 cells wide for the whole "42"
+_PATTERN_H = _DIGIT_H               # 10 cells tall
+_MIN_W = _PATTERN_W + 4             # 28 = minimum maze width to fit "42" + margin
+_MIN_H = _PATTERN_H + 4             # 14 = minimum maze height to fit "42" + margin
+
+
 class MazeGenerator:
     """Generates a 2D maze using a configurable algorithm.
 
@@ -35,6 +69,8 @@ class MazeGenerator:
         height: Number of cells vertically.
         seed: Optional integer seed for reproducibility.
         perfect: If True, generate a perfect maze (one path between any two cells).
+        entry: (x, y) start cell. Defaults to (0, 0) — the top-left corner.
+        exit: (x, y) end cell. Defaults to (width-1, height-1) — bottom-right.
     """
 
     def __init__(
@@ -43,11 +79,22 @@ class MazeGenerator:
         height: int,
         seed: int | None = None,
         perfect: bool = True,
+        entry: tuple[int, int] = (0, 0),
+        exit: tuple[int, int] | None = None,
     ) -> None:
         self.width = width
         self.height = height
         self.perfect = perfect
         self.seed = seed
+
+        # Where the maze starts and ends.
+        # exit defaults to None in the signature, so resolve it here:
+        # the bottom-right corner is (width-1, height-1).
+        self.entry = entry
+        self.exit = exit if exit is not None else (width - 1, height - 1)
+
+        # Cells occupied by the "42" drawing. Filled during generate(); empty for now.
+        self.pattern_cells: set[tuple[int, int]] = set()
 
         # This is the maze. A 2D list of integers.
         # grid[row][col] — grid[0][0] is top-left.
@@ -68,3 +115,10 @@ class MazeGenerator:
         """Print the raw hex values of the grid. For debugging only."""
         for row in self.grid:
             print(" ".join(f"{cell:X}" for cell in row))
+
+    def generate(self) -> None:
+        """Generate the maze. Populates self.grid and self.pattern_cells.
+
+        Stub for now — the DFS carving and "42" embedding land in Task 4.
+        """
+        pass
