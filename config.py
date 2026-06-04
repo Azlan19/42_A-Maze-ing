@@ -36,4 +36,21 @@ def parse_config(path: str) -> MazeConfig:
         raise ValueError("WIDTH and HEIGHT must be integers")
     if width < 1 or height < 1:
         raise ValueError("WIDTH and HEIGHT must be positive")
-        
+
+    if raw["PERFECT"] not in ("True", "False"):
+        raise ValueError("PERFECT must be True or False")
+    perfect = raw["PERFECT"] == "True"
+    
+    seed = None
+    if "SEED" in raw:
+        try:
+            seed = int(raw["SEED"])
+        except ValueError:
+            raise ValueError("SEED must be an integer")
+    
+    return MazeConfig(
+        width=width,
+        height=height,
+        output_file=["OUTPUT_FILE"],
+        perfect=perfect,
+        seed=seed)
