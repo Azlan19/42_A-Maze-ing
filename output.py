@@ -14,8 +14,8 @@ def write_output(
                 file.write("".join(f"{cell:X}"))
             file.write("\n")
         file.write("\n")
-        file.write(f"{entry[0]}, {entry[1]}\n")
-        file.write(f"{exit[0]}, {exit[1]}\n")
+        file.write(f"{entry[0]},{entry[1]}\n")
+        file.write(f"{exit[0]},{exit[1]}\n")
         file.write("".join(path) + "\n")
 
 
