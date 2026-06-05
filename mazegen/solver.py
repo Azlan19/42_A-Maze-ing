@@ -22,15 +22,15 @@ def solve(
     if entry == exit:
         return []
 
-    visited: set[tuple[int, int]] = {entry}
-    parent: dict[tuple[int, int], tuple[tuple[int, int], int]] = {}
-    queue: deque[tuple[int, int]] = deque([entry])
+    visited: set[tuple[int, int]] = {entry} # Tracks which cells have been seen
+    parent: dict[tuple[int, int], tuple[tuple[int, int], int]] = {} # Maps each cell to (the cell we came from, the direction we took)
+    queue: deque[tuple[int, int]] = deque([entry]) # Start with the entry cell
 
     while queue:
         x, y = queue.popleft()
 
         if (x, y) == exit:
-            return [] # Return path with helper function
+            return _reconstruct_path(parent, entry, exit) # Return path with helper function
 
     
     for direction, (dx, dy) in DIRECTION_DELTA.items():
@@ -43,3 +43,20 @@ def solve(
             queue.append((nx, ny))
     
     return []
+
+
+def _reconstruct_path(
+    parent: dict[tuple[int, int], tuple[tuple[int, int], int]],
+    entry: tuple[int, int],
+    exit: tuple[int, int],
+) -> list[str]:
+    path: list[str] = []
+    cell = exit
+
+    while cell != entry:
+        prev_cell, direction = parent[cell]
+        path.append(_DIRECTION_TO_CHAR[direction])
+        cell = prev_cell
+
+    path.reverse()
+    return path
