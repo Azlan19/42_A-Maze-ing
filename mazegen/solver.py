@@ -16,9 +16,9 @@ def solve(
     width: int,
     height: int
 ) -> list[str]:
-    """Find shortest path from entry to exit using BFS"""
+    """Find shortest path from entry to exit using BFS
 
-    """Return: List of direction letters or empty list if no path exists"""
+    Return: List of direction letters or empty list if no path exists"""
     if entry == exit:
         return []
 
@@ -32,15 +32,14 @@ def solve(
         if (x, y) == exit:
             return _reconstruct_path(parent, entry, exit) # Return path with helper function
 
-    
-    for direction, (dx, dy) in DIRECTION_DELTA.items():
-        if grid[y][x] & direction:
-            continue
-        nx, ny = x + dx, y + dy
-        if 0 <= nx < width and 0 <= ny < height and (nx, ny) not in visited:
-            visited.add((nx, ny))
-            parent[(nx, ny)] = ((x, y), direction)
-            queue.append((nx, ny))
+        for direction, (dx, dy) in DIRECTION_DELTA.items():
+            if grid[y][x] & direction:
+                continue
+            nx, ny = x + dx, y + dy
+            if 0 <= nx < width and 0 <= ny < height and (nx, ny) not in visited:
+                visited.add((nx, ny))
+                parent[(nx, ny)] = ((x, y), direction)
+                queue.append((nx, ny))
     
     return []
 
