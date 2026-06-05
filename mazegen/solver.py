@@ -27,19 +27,19 @@ def solve(
     queue: deque[tuple[int, int]] = deque([entry]) # Start with the entry cell
 
     while queue:
-        x, y = queue.popleft()
+        x, y = queue.popleft() # Processes 1 cell at a time from the beginning
 
         if (x, y) == exit:
             return _reconstruct_path(parent, entry, exit) # Return path with helper function
 
         for direction, (dx, dy) in DIRECTION_DELTA.items():
-            if grid[y][x] & direction:
+            if grid[y][x] & direction: # If wall, continue
                 continue
-            nx, ny = x + dx, y + dy
+            nx, ny = x + dx, y + dy # set neighbour coordinates
             if 0 <= nx < width and 0 <= ny < height and (nx, ny) not in visited:
                 visited.add((nx, ny))
                 parent[(nx, ny)] = ((x, y), direction)
-                queue.append((nx, ny))
+                queue.append((nx, ny)) # Added to the back of the queue to be processed
     
     return []
 
