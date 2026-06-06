@@ -11,7 +11,7 @@ def write_output(
     with open(output_file, "w") as file:
         for row in grid:
             for cell in row:
-                file.write(""f"{cell:X}")
+                file.write(f"{cell:X}")
             file.write("\n")
         file.write("\n")
         file.write(f"{entry[0]},{entry[1]}\n")

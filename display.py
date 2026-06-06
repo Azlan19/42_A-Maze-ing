@@ -16,7 +16,7 @@ WALL_COLOURS: list[str] = [
 ]
 
 # Convert path letters back to direction name
-_CHAR_TO_DIRECTION: dict[int, str] = {
+_CHAR_TO_DIRECTION: dict[str, int] = {
     "N": NORTH,
     "E": EAST,
     "S": SOUTH,
