@@ -13,3 +13,22 @@ def _clear() -> None:
     # \033[H — moves the cursor back to the top-left corner.
     # end="" — prevents print() from adding an extra newline after the escape codes.
 
+
+def _generate(
+    cfg: MazeConfig,
+    seed: int
+) -> tuple[MazeGenerator, list[str]]:
+    mg = MazeGenerator(
+        width = cfg.width,
+        height = cfg.height,
+        seed=seed,
+        perfect = cfg.perfect,
+        entry = cfg.entry,
+        exit = cfg.exit
+    )
+    mg.generate()
+    path = solve(mg.grid, mg.entry, mg.exit, mg.width, mg.height)
+    return mg, path
+    # Helper function because need to generate the maze twice: at startup and again every rerun
+
+
