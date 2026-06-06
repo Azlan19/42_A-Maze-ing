@@ -23,3 +23,16 @@ _CHAR_TO_DIRECTION: dict[int, str] = {
     "W": WEST,
 }
 
+
+def _path_cells(
+    entry: tuple[int, int],
+    path: list[str]
+) -> set[tuple[int, int]]:
+    """Convert direction letters into the set of cells the path passes through"""
+    cells: set[tuple[int, int]] = {entry}
+    x, y = entry
+    for letter in path:
+        dx, dy = DIRECTION_DELTA[_CHAR_TO_DIRECTION[letter]]
+        x, y = x + dx, y + dy
+        cells.add((x, y))
+    return cells
