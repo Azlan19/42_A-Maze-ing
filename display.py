@@ -8,7 +8,7 @@ CYAN = "\033[36m"
 DARK_GREY = "\033[90m"
 
 # The list a_maze_ing.py cycles through when the user chooses an option
-WALL_COLORS: list[str] = [
+WALL_COLOURS: list[str] = [
     "\033[37m",  # white
     "\033[33m",  # yellow
     "\033[32m",  # green
@@ -57,3 +57,18 @@ def _cell_char(
         return CYAN + " ." + RESET
     return "  "
 
+
+def _top_border(
+    grid: list[list[int]],
+    width: int,
+    row: int,
+    wall_colour: str
+) -> str:
+    """Build the horizontal border line above a given row"""
+    output = wall_colour + "+" + RESET
+    for col in range(width):
+        if row == 0 or grid[row][col] & NORTH: # row == 0 always writes the wall, grid[row][col] & NORTH writes if NORTH is a wall
+            output = wall_colour + "--+" + RESET
+        else:
+            output = "  " + wall_colour + "+" + RESET
+    return output
