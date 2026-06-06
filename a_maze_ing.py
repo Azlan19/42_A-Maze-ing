@@ -64,3 +64,16 @@ def main() -> None:
         print("3. Rotate maze colours")
         print("4. Quit")
         choice = input("Choice? (1-4): ").strip()
+
+        if choice == "1":
+            seed += 1
+            mg, path = _generate(cfg, seed)
+        elif choice == "2":
+            show_path = not show_path
+        elif choice == "3":
+            wall_colour_index = (wall_colour_index + 1) % len(WALL_COLOURS)
+        elif choice == "4":
+            break
+        else:
+            print("Invalid Input: Number must be between 1 and 4")
+
