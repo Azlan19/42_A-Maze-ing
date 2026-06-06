@@ -68,7 +68,19 @@ def _top_border(
     output = wall_colour + "+" + RESET
     for col in range(width):
         if row == 0 or grid[row][col] & NORTH: # row == 0 always writes the wall, grid[row][col] & NORTH writes if NORTH is a wall
-            output = wall_colour + "--+" + RESET
+            output += wall_colour + "--+" + RESET
         else:
-            output = "  " + wall_colour + "+" + RESET
+            output += "  " + wall_colour + "+" + RESET
     return output
+
+
+def _bottom_border(
+    width: int,
+    wall_colour: str
+) -> str:
+    """Build the horizontal bottom border line"""
+    output = wall_colour + "+" + RESET
+    for _ in range(width):
+        output += wall_colour + "--+" + RESET
+    return output
+
