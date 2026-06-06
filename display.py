@@ -36,3 +36,24 @@ def _path_cells(
         x, y = x + dx, y + dy
         cells.add((x, y))
     return cells
+
+
+def _cell_char(
+    x: int,
+    y: int,
+    entry: tuple[int, int],
+    exit: tuple[int, int],
+    path_cells: set[tuple[int, int]],
+    pattern_cells: set[tuple[int, int]],
+) -> str:
+    """Return the 2-character wide interior string for a cell"""
+    if (x, y) == entry:
+        return MAGENTA + " E" + RESET
+    if (x, y) == exit:
+        return RED + " X" + RESET
+    if (x, y) in pattern_cells:
+        return DARK_GREY + "##" + RESET
+    if (x, y) in path_cells:
+        return CYAN + " ." + RESET
+    return "  "
+
