@@ -84,3 +84,26 @@ def _bottom_border(
         output += wall_colour + "--+" + RESET
     return output
 
+
+def _cell_line(
+    grid: list[list[int]],
+    width: int,
+    row: int,
+    entry: tuple[int, int],
+    exit: tuple[int, int],
+    path_cells: set[tuple[int, int]],
+    pattern_cells: set[tuple[int, int]],
+    wall_colour: str
+) -> str:
+    """Build the interior line between cells for the given row"""
+    output = ""
+    for col in range(width):
+        if col == 0 or grid[row][col] & WEST:
+            output += wall_colour + "|" + RESET
+        else:
+            output += " "
+        output += _cell_char(col, row, entry, exit, path_cells, pattern_cells)
+    output += wall_colour + "|" + RESET
+    return output
+
+
