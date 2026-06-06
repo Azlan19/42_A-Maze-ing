@@ -107,3 +107,39 @@ def _cell_line(
     return output
 
 
+def render(
+    grid: list[list[int]],
+    width: int,
+    height: int,
+    entry: tuple[int, int],
+    exit: tuple[int, int],
+    path: list[str],
+    show_path: bool,
+    wall_colour: str,
+    pattern_cells: set[tuple[int, int]]
+) -> None:
+    """Print the maze to stdout with ANSI colours"""
+    if show_path and path:
+        path_cells = _path_cells(entry, path)
+    else:
+        path_cells = set()
+    
+    lines: list[str] = []
+
+    for row in range(height):
+        lines.append(_top_border(grid, width, row, wall_colour))
+        lines.append(_cell_line(grid, width, row, entry, exit, path_cells, pattern_cells, wall_colour))
+    
+    lines.append(_bottom_border(width, wall_colour))
+    print("\n".join(lines))
+
+
+
+# from mazegen.generator import MazeGenerator
+# from mazegen.solver import solve
+
+# mg = MazeGenerator(19, 19, seed=100)
+# mg.generate()
+# path = solve(mg.grid, mg.entry, mg.exit, mg.width, mg.height)
+# render(mg.grid, mg.width, mg.height, mg.entry, mg.exit,
+#        path, True, WALL_COLOURS[1], mg.pattern_cells)
