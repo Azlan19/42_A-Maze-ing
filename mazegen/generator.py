@@ -191,7 +191,7 @@ class MazeGenerator:
         """
         self.pattern_cells = set()
         if self.width < _MIN_W or self.height < _MIN_H:
-            print("Warning: maze too small for '42' pattern, skipping.")
+            print("Error: maze too small for '42' pattern, skipping.")
             return
 
         # Centre the whole "42" block inside the maze.
