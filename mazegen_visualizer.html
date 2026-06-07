@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Mazegen DFS Visualizer</title>
+<title>Mazegen Visualizer — DFS + BFS</title>
 <style>
 * { box-sizing: border-box; margin: 0; padding: 0; }
 body {
@@ -18,6 +18,21 @@ body {
 }
 h1 { color: #8ab4f8; font-size: 20px; letter-spacing: 1px; }
 .subtitle { font-size: 12px; color: #666; }
+
+.tab-row { display: flex; gap: 4px; }
+.tab-btn {
+    padding: 8px 22px;
+    background: #0f0f1a;
+    color: #556;
+    border: 1px solid #334;
+    border-radius: 6px 6px 0 0;
+    cursor: pointer;
+    font-family: monospace;
+    font-size: 13px;
+    transition: all 0.15s;
+}
+.tab-btn.active { background: #16213e; color: #8ab4f8; border-color: #8ab4f8; }
+.tab-btn:hover:not(.active) { color: #aaa; border-color: #556; }
 
 .settings {
     display: flex;
@@ -51,19 +66,9 @@ h1 { color: #8ab4f8; font-size: 20px; letter-spacing: 1px; }
     justify-content: center;
 }
 
-canvas {
-    border: 2px solid #334;
-    border-radius: 4px;
-    display: block;
-    cursor: default;
-}
+canvas { border: 2px solid #334; border-radius: 4px; display: block; }
 
-.panel {
-    width: 260px;
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-}
+.panel { width: 260px; display: flex; flex-direction: column; gap: 10px; }
 
 .box {
     background: #16213e;
@@ -88,38 +93,30 @@ canvas {
     vertical-align: middle;
     margin-left: 6px;
 }
-.phase-init    { background:#3a3a3a; color:#aaa; }
-.phase-pattern { background:#3a2a10; color:#f4a261; }
-.phase-dfs     { background:#102040; color:#8ab4f8; }
-.phase-done    { background:#0a2a1a; color:#6fcf97; }
+.phase-init        { background:#3a3a3a; color:#aaa; }
+.phase-pattern     { background:#3a2a10; color:#f4a261; }
+.phase-dfs         { background:#102040; color:#8ab4f8; }
+.phase-done        { background:#0a2a1a; color:#6fcf97; }
+.phase-bfs-init    { background:#1e1030; color:#a78bfa; }
+.phase-bfs-explore { background:#1e1030; color:#a78bfa; }
+.phase-bfs-found   { background:#302010; color:#fbbf24; }
+.phase-bfs-path    { background:#302010; color:#fbbf24; }
+.phase-bfs-done    { background:#0a2a1a; color:#6fcf97; }
 
 #description {
     font-size: 12px;
     line-height: 1.6;
     min-height: 72px;
     color: #c0c0d0;
+    white-space: pre-line;
 }
-
-#stepCounter {
-    font-size: 11px;
-    color: #556;
-    margin-top: 6px;
-}
+#stepCounter { font-size: 11px; color: #556; margin-top: 6px; }
 
 .progress-bar {
-    width: 100%;
-    height: 4px;
-    background: #223;
-    border-radius: 2px;
-    margin-top: 6px;
-    overflow: hidden;
+    width: 100%; height: 4px; background: #223;
+    border-radius: 2px; margin-top: 6px; overflow: hidden;
 }
-.progress-fill {
-    height: 100%;
-    background: #8ab4f8;
-    border-radius: 2px;
-    transition: width 0.05s;
-}
+.progress-fill { height: 100%; background: #8ab4f8; border-radius: 2px; transition: width 0.05s; }
 
 .stack-vis {
     font-size: 11px;
@@ -132,6 +129,7 @@ canvas {
 .stack-vis::-webkit-scrollbar { width: 4px; }
 .stack-vis::-webkit-scrollbar-track { background: #0f0f1a; }
 .stack-vis::-webkit-scrollbar-thumb { background: #334; }
+
 .stack-item {
     padding: 2px 8px;
     background: #1a3050;
@@ -139,12 +137,17 @@ canvas {
     color: #8ab4f8;
     border-left: 2px solid #1a3050;
 }
-.stack-item.top {
-    background: #2a1a00;
-    border-left-color: #f4a261;
-    color: #f4a261;
-    font-weight: bold;
+.stack-item.top { background:#2a1a00; border-left-color:#f4a261; color:#f4a261; font-weight:bold; }
+
+.queue-item {
+    padding: 2px 8px;
+    background: #1a1030;
+    border-radius: 3px;
+    color: #a78bfa;
+    border-left: 2px solid #1a1030;
 }
+.queue-item.front { background:#2a2040; border-left-color:#a78bfa; color:#c4b5fd; font-weight:bold; }
+
 .stack-empty { color: #445; font-style: italic; }
 
 .legend {
@@ -154,12 +157,9 @@ canvas {
     align-items: center;
     font-size: 11px;
 }
-.swatch {
-    width: 14px;
-    height: 14px;
-    border-radius: 2px;
-    border: 1px solid #334;
-}
+.swatch { width:14px; height:14px; border-radius:2px; border:1px solid #334; }
+
+.hidden { display: none !important; }
 
 .controls {
     display: flex;
@@ -183,76 +183,83 @@ button:hover:not(:disabled) { background: #1e3a5f; border-color: #8ab4f8; color:
 button:disabled { opacity: 0.35; cursor: default; }
 button.active { background: #1e3a5f; border-color: #8ab4f8; color: #8ab4f8; }
 
-.speed-row {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    font-size: 11px;
-    color: #778;
-}
-input[type=range] {
-    width: 90px;
-    accent-color: #8ab4f8;
-}
+.speed-row { display:flex; align-items:center; gap:8px; font-size:11px; color:#778; }
+input[type=range] { width: 90px; accent-color: #8ab4f8; }
 
-#rebuildBtn {
-    background: #1a3020;
-    border-color: #3a7a4a;
-    color: #6fcf97;
-}
+#rebuildBtn { background:#1a3020; border-color:#3a7a4a; color:#6fcf97; }
 #rebuildBtn:hover { background: #1f4028; }
 
-.hint {
-    font-size: 11px;
-    color: #445;
-    text-align: center;
-}
+.hint { font-size: 11px; color: #445; text-align: center; }
 </style>
 </head>
 <body>
 
-<h1>Mazegen DFS Visualizer</h1>
-<p class="subtitle">Step through the maze generation algorithm from mazegen/generator.py</p>
+<h1>Mazegen Visualizer</h1>
+<p class="subtitle">DFS generator (generator.py) and BFS solver (solver.py)</p>
+
+<div class="tab-row">
+    <button class="tab-btn active" id="tabDFS">DFS Generator</button>
+    <button class="tab-btn"        id="tabBFS">BFS Solver</button>
+</div>
 
 <div class="settings">
-    <label>Width <input type="number" id="wInput" value="15" min="5" max="30"></label>
+    <label>Width  <input type="number" id="wInput" value="15" min="5" max="30"></label>
     <label>Height <input type="number" id="hInput" value="11" min="5" max="25"></label>
-    <label>Seed <input type="number" id="sInput" value="42" min="0" max="99999"></label>
-    <button id="rebuildBtn">↺ Rebuild</button>
+    <label>Seed   <input type="number" id="sInput" value="42" min="0" max="99999"></label>
+    <button id="rebuildBtn">Rebuild</button>
 </div>
 
 <div class="main">
     <div>
         <canvas id="c"></canvas>
         <p class="hint" style="margin-top:6px">
-            Bit flags per cell: NORTH=1 EAST=2 SOUTH=4 WEST=8 &nbsp;|&nbsp; 0xF = all walls closed
+            Bit flags: NORTH=1 EAST=2 SOUTH=4 WEST=8 &nbsp;|&nbsp; 0xF = all walls closed
         </p>
     </div>
 
     <div class="panel">
         <div class="box">
-            <h3>Phase <span id="phaseBadge" class="phase-badge phase-init">INIT</span></h3>
+            <h3>Phase <span id="phaseBadge" class="phase-init">INIT</span></h3>
             <div id="description">Press Play or Step to begin.</div>
             <div id="stepCounter">Step 0 / 0</div>
             <div class="progress-bar"><div class="progress-fill" id="progress" style="width:0%"></div></div>
         </div>
 
-        <div class="box">
+        <!-- DFS stack panel -->
+        <div class="box" id="dfsPanel">
             <h3>DFS Stack <span id="stackDepth" style="color:#556;font-weight:normal">(depth 0)</span></h3>
             <div class="stack-vis" id="stackVis">
-                <span class="stack-empty">— empty —</span>
+                <span class="stack-empty">empty</span>
+            </div>
+        </div>
+
+        <!-- BFS queue panel -->
+        <div class="box hidden" id="bfsPanel">
+            <h3>BFS Queue <span id="queueSize" style="color:#556;font-weight:normal">(size 0)</span></h3>
+            <div class="stack-vis" id="queueVis">
+                <span class="stack-empty">empty</span>
             </div>
         </div>
 
         <div class="box">
             <h3>Legend</h3>
-            <div class="legend">
-                <div class="swatch" style="background:#f8fafc;border-color:#1e293b"></div><span>Unvisited (all walls closed)</span>
-                <div class="swatch" style="background:#f97316"></div><span>Current cell (top of stack)</span>
+            <div class="legend" id="dfsLegend">
+                <div class="swatch" style="background:#f8fafc;border-color:#1e293b"></div><span>Unvisited</span>
+                <div class="swatch" style="background:#f97316"></div><span>Current cell</span>
                 <div class="swatch" style="background:#60a5fa"></div><span>In stack (active path)</span>
-                <div class="swatch" style="background:#86efac;border-color:#555"></div><span>Visited &amp; popped (done)</span>
-                <div class="swatch" style="background:#1e293b"></div><span>"42" obstacle cell</span>
-                <div class="swatch" style="background:#fbbf24"></div><span>Broken wall (this step)</span>
+                <div class="swatch" style="background:#86efac;border-color:#555"></div><span>Visited and popped</span>
+                <div class="swatch" style="background:#1e293b"></div><span>"42" obstacle</span>
+                <div class="swatch" style="background:#fbbf24"></div><span>Wall just broken</span>
+                <div class="swatch" style="background:#ff69b4"></div><span>Entry (E)</span>
+                <div class="swatch" style="background:#e74c3c"></div><span>Exit (X)</span>
+            </div>
+            <div class="legend hidden" id="bfsLegend">
+                <div class="swatch" style="background:#f8fafc;border-color:#1e293b"></div><span>Not yet reached</span>
+                <div class="swatch" style="background:#f97316"></div><span>Current (dequeued)</span>
+                <div class="swatch" style="background:#a78bfa"></div><span>In queue (frontier)</span>
+                <div class="swatch" style="background:#86efac;border-color:#555"></div><span>Explored</span>
+                <div class="swatch" style="background:#fbbf24"></div><span>Solution path</span>
+                <div class="swatch" style="background:#1e293b"></div><span>"42" obstacle</span>
                 <div class="swatch" style="background:#ff69b4"></div><span>Entry (E)</span>
                 <div class="swatch" style="background:#e74c3c"></div><span>Exit (X)</span>
             </div>
@@ -261,9 +268,9 @@ input[type=range] {
 </div>
 
 <div class="controls">
-    <button id="prevBtn" disabled>⏮ Prev</button>
-    <button id="playBtn">▶ Play</button>
-    <button id="nextBtn">Next ⏭</button>
+    <button id="prevBtn" disabled>Prev</button>
+    <button id="playBtn">Play</button>
+    <button id="nextBtn">Next</button>
     <button id="resetBtn">Reset</button>
     <div class="speed-row">
         Speed <input type="range" id="speed" min="1" max="120" value="20">
@@ -272,22 +279,22 @@ input[type=range] {
 </div>
 
 <script>
-// ─── Constants (mirrors generator.py) ────────────────────────────────────────
+// constants mirroring generator.py
 const N = 1, E = 2, S = 4, WEST = 8;
-const OPP = { [N]: S, [S]: N, [E]: WEST, [WEST]: E };
+const OPP   = { [N]: S, [S]: N, [E]: WEST, [WEST]: E };
 const DELTA = { [N]: [0,-1], [E]: [1,0], [S]: [0,1], [WEST]: [-1,0] };
 const DNAME = { [N]: 'N', [E]: 'E', [S]: 'S', [WEST]: 'W' };
 
-// "42" bitmaps (5 rows × 3 cols each) — matches _FOUR and _TWO in generator.py
-const FOUR = [[1,0,0],[1,0,0],[1,1,1],[0,0,1],[0,0,1]];
+// 42 bitmaps matching generator.py exactly
+const FOUR = [[1,0,1],[1,0,1],[1,1,1],[0,0,1],[0,0,1]];
 const TWO  = [[1,1,1],[0,0,1],[1,1,1],[1,0,0],[1,1,1]];
-const SCALE = 1, DW = 3, DH = 5, GAP = 1;
+const DW = 3, DH = 5, GAP = 1;
 const PW = DW * 2 + GAP;   // 7
 const PH = DH;              // 5
 const MIN_W = PW + 4;       // 11
 const MIN_H = PH + 4;       // 9
 
-// ─── Seeded PRNG (Mulberry32) ─────────────────────────────────────────────────
+// seeded PRNG (Mulberry32) to match Python's random.seed behaviour
 function makeRNG(seed) {
     let s = seed >>> 0;
     return () => {
@@ -306,23 +313,18 @@ function shuffle(arr, rng) {
     return arr;
 }
 
-// ─── Step recorder ────────────────────────────────────────────────────────────
-// Records every meaningful moment of the algorithm so we can scrub through them.
-function buildSteps(width, height, seed) {
+// ─── DFS step recorder ────────────────────────────────────────────────────────
+// Records every meaningful moment of _carve_dfs() so the user can step through it.
+function buildDFSSteps(width, height, seed) {
     const rng = makeRNG(seed);
-
-    // grid[row][col]; 0xF = all walls closed
     let grid = Array.from({length: height}, () => new Array(width).fill(0xF));
-
-    // patternCells: Set of "x,y" strings for the "42" obstacle cells
     let patternCells = new Set();
-
     const entry = [0, 0];
     const exit_  = [width - 1, height - 1];
 
     const snap = (phase, current, stack, visited, desc, moved = null) => ({
         phase,
-        grid: grid.map(r => [...r]),          // deep copy
+        grid: grid.map(r => [...r]),
         patternCells: new Set(patternCells),
         visited: new Set(visited),
         stack: stack.map(c => [...c]),
@@ -333,59 +335,50 @@ function buildSteps(width, height, seed) {
 
     const steps = [];
 
-    // ── INIT ──────────────────────────────────────────────────────────────────
+    // step 1: grid initialised, nothing carved
     steps.push(snap('init', null, [], new Set(), [
-        `Grid created: ${width}×${height} = ${width * height} cells.`,
+        `Grid created: ${width}x${height} = ${width * height} cells.`,
         `Every cell starts at 0xF (binary 1111) — all four walls closed.`,
-        `Bit flags: NORTH=1  EAST=2  SOUTH=4  WEST=8.`,
+        `Bit flags: NORTH=1  EAST=2  SOUTH=4  WEST=8`,
         `To remove a wall: cell &= ~flag  (clears that bit).`,
         `Entry: (${entry[0]},${entry[1]})   Exit: (${exit_[0]},${exit_[1]})`,
     ].join('\n')));
 
-    // ── EMBED "42" PATTERN ────────────────────────────────────────────────────
+    // step 2: embed pattern
     if (width >= MIN_W && height >= MIN_H) {
         const ox = Math.floor((width - PW) / 2);
         const oy = Math.floor((height - PH) / 2);
-
         for (const [bmp, dx] of [[FOUR, 0], [TWO, DW + GAP]]) {
             for (let row = 0; row < 5; row++) {
                 for (let col = 0; col < DW; col++) {
                     if (!bmp[row][col]) continue;
-                    for (let sr = 0; sr < SCALE; sr++) {
-                        for (let sc = 0; sc < SCALE; sc++) {
-                            patternCells.add(`${ox + dx + col*SCALE + sc},${oy + row*SCALE + sr}`);
-                        }
-                    }
+                    patternCells.add(`${ox + dx + col},${oy + row}`);
                 }
             }
         }
-
         steps.push(snap('pattern', null, [], new Set(), [
             `_embed_pattern() ran.`,
-            `"42" drawn as pixel art (5×3 per digit, scale=${SCALE}).`,
-            `${patternCells.size} cells marked as solid obstacles (dark).`,
-            `Centred at offset (${Math.floor((width-PW)/2)}, ${Math.floor((height-PH)/2)}).`,
-            `DFS will never carve into these cells.`,
+            `"42" drawn as pixel art (5x3 per digit).`,
+            `${patternCells.size} cells marked as solid obstacles.`,
+            `Centred at offset (${ox}, ${oy}).`,
+            `DFS will treat these as already visited — never carves into them.`,
         ].join('\n')));
     } else {
         steps.push(snap('pattern', null, [], new Set(), [
-            `Maze ${width}×${height} is too small for "42" (need ≥ ${MIN_W}×${MIN_H}).`,
-            `Pattern skipped — maze generates normally without obstacles.`,
+            `Maze ${width}x${height} too small for "42" (need >= ${MIN_W}x${MIN_H}).`,
+            `Pattern skipped — maze generates normally.`,
         ].join('\n')));
     }
 
-    // ── DFS ───────────────────────────────────────────────────────────────────
-    // Pre-populate visited with pattern cells so DFS never enters them.
+    // DFS
     const visited = new Set(patternCells);
     visited.add(`${entry[0]},${entry[1]}`);
-
     const stack = [entry];
 
     steps.push(snap('dfs', entry, stack, visited, [
         `_carve_dfs() starts.`,
         `Push entry (${entry[0]},${entry[1]}) onto the stack.`,
-        `Mark it visited.`,
-        `Stack depth: 1.`,
+        `Mark it visited. Stack depth: 1.`,
     ].join('\n')));
 
     const dirs = [N, E, S, WEST];
@@ -395,27 +388,23 @@ function buildSteps(width, height, seed) {
     while (stack.length > 0 && iters++ < MAX) {
         const [x, y] = stack[stack.length - 1];
         const order = shuffle([...dirs], rng);
-
         let moved = false;
+
         for (const dir of order) {
             const [dx, dy] = DELTA[dir];
             const nx = x + dx, ny = y + dy;
             const key = `${nx},${ny}`;
-
             if (nx >= 0 && nx < width && ny >= 0 && ny < height && !visited.has(key)) {
-                // Remove the shared wall on both cells
                 grid[y][x]   &= ~dir;
                 grid[ny][nx] &= ~OPP[dir];
                 visited.add(key);
                 stack.push([nx, ny]);
-
                 steps.push(snap('dfs', [nx, ny], stack, visited, [
-                    `Moved ${DNAME[dir]} from (${x},${y}) → (${nx},${ny}).`,
-                    `Removed ${DNAME[dir]} wall from (${x},${y}): grid[${y}][${x}] &= ~${dir}`,
-                    `Removed ${DNAME[OPP[dir]]} wall from (${nx},${ny}): grid[${ny}][${nx}] &= ~${OPP[dir]}`,
+                    `Moved ${DNAME[dir]} from (${x},${y}) to (${nx},${ny}).`,
+                    `grid[${y}][${x}] &= ~${dir}  (removed ${DNAME[dir]} wall)`,
+                    `grid[${ny}][${nx}] &= ~${OPP[dir]}  (removed ${DNAME[OPP[dir]]} wall on neighbour)`,
                     `Stack depth: ${stack.length}.`,
                 ].join('\n'), true));
-
                 moved = true;
                 break;
             }
@@ -428,96 +417,199 @@ function buildSteps(width, height, seed) {
                 stack, visited,
                 [
                     `Dead end at (${popped[0]},${popped[1]}).`,
-                    `All 4 neighbours are already visited (or obstacles).`,
-                    `Backtrack: pop (${popped[0]},${popped[1]}) off stack.`,
+                    `All 4 neighbours already visited or out of bounds.`,
+                    `Backtrack: pop (${popped[0]},${popped[1]}) from stack.`,
                     `Stack depth: ${stack.length}.`,
-                ].join('\n'),
-                false
+                ].join('\n'), false
             ));
         }
     }
 
-    // Re-seal pattern cells (safety pass from generate())
+    // re-seal pattern cells (safety pass from generate())
     for (const key of patternCells) {
         const [px, py] = key.split(',').map(Number);
         grid[py][px] = 0xF;
     }
 
-    const carved = visited.size - patternCells.size;
     steps.push(snap('done', null, [], visited, [
-        `Maze complete! ${carved} of ${width*height - patternCells.size} cells carved.`,
-        `Pattern cells re-sealed to 0xF (safety pass).`,
+        `Maze complete!`,
+        `Pattern cells re-sealed to 0xF (safety pass in generate()).`,
         `Every non-obstacle cell is reachable from entry.`,
-        `This is a perfect maze: exactly one path between any two cells.`,
+        `Perfect maze: exactly one path between any two cells.`,
     ].join('\n')));
 
-    return { steps, entry, exit_ };
+    return {
+        steps,
+        entry,
+        exit_,
+        finalGrid: grid.map(r => [...r]),
+        patternCells: new Set(patternCells),
+    };
 }
 
-// ─── Canvas drawing ───────────────────────────────────────────────────────────
+// ─── BFS step recorder ────────────────────────────────────────────────────────
+// Mirrors solver.py: solve() uses BFS, _reconstruct_path() walks parent pointers.
+function buildBFSSteps(completedGrid, width, height, entry, exit_, patternCells) {
+    const steps = [];
+
+    const snap = (phase, current, queue, visited, path, desc) => ({
+        phase,
+        current: current ? [...current] : null,
+        queue:   queue.map(c => [...c]),
+        visited: new Set(visited),
+        path:    path ? path.map(c => [...c]) : null,
+        description: desc,
+    });
+
+    const visited = new Set();
+    const entryKey = `${entry[0]},${entry[1]}`;
+    const exitKey  = `${exit_[0]},${exit_[1]}`;
+    visited.add(entryKey);
+
+    const parent = new Map();  // "x,y" -> "px,py" — which cell we came from
+    const queue = [[...entry]];
+
+    // initial state: queue has only the entry cell
+    steps.push(snap('bfs-init', entry, [...queue], new Set(visited), null, [
+        `solve() called.`,
+        `Entry: (${entry[0]},${entry[1]})  Exit: (${exit_[0]},${exit_[1]})`,
+        `Queue starts with just entry: [(${entry[0]},${entry[1]})]`,
+        `BFS explores layer by layer — closest cells first.`,
+        `This guarantees the shortest path to exit.`,
+    ].join('\n')));
+
+    let foundExit = false;
+
+    while (queue.length > 0 && !foundExit) {
+        const cell = queue.shift();  // popleft() from front — oldest item first
+        const [x, y] = cell;
+        const cellKey = `${x},${y}`;
+
+        // reached exit — start path reconstruction
+        if (cellKey === exitKey) {
+            foundExit = true;
+            steps.push(snap('bfs-found', cell, [...queue], new Set(visited), null, [
+                `x, y = queue.popleft() -> (${x},${y})`,
+                `This is the EXIT — shortest path found!`,
+                `Now calling _reconstruct_path().`,
+                `We walk parent[] pointers from exit back to entry.`,
+            ].join('\n')));
+
+            // walk parent pointers from exit -> entry
+            const pathFromExit = [];
+            let cur = exitKey;
+            while (cur !== undefined) {
+                const [cx, cy] = cur.split(',').map(Number);
+                pathFromExit.push([cx, cy]);
+                cur = parent.get(cur);
+            }
+            // pathFromExit = [exit, ..., entry]
+
+            // animate reconstruction one cell at a time
+            for (let i = 1; i <= pathFromExit.length; i++) {
+                const partial = pathFromExit.slice(0, i);
+                const [rcx, rcy] = partial[partial.length - 1];
+                steps.push(snap('bfs-path', [rcx, rcy], [], new Set(visited), partial,
+                    i === 1
+                        ? `_reconstruct_path() starts at exit (${exit_[0]},${exit_[1]}).\nLooking up parent[(${exit_[0]},${exit_[1]})]...\nStep ${i} / ${pathFromExit.length}.`
+                        : `parent[(${pathFromExit[i-2][0]},${pathFromExit[i-2][1]})] = (${rcx},${rcy})\nTracing ${i} / ${pathFromExit.length} cells.`
+                ));
+            }
+
+            // final step: path reversed to entry->exit order
+            const finalPath = [...pathFromExit].reverse();
+            steps.push(snap('bfs-done', null, [], new Set(visited), finalPath, [
+                `path.reverse() — now in entry->exit order.`,
+                `Shortest path: ${finalPath.length - 1} steps.`,
+                `Returned as a list of direction letters: N E S W`,
+                `Entry (${entry[0]},${entry[1]}) -> Exit (${exit_[0]},${exit_[1]}).`,
+            ].join('\n')));
+            break;
+        }
+
+        // explore all open neighbours of this cell
+        const newNeighbors = [];
+        for (const dir of [N, E, S, WEST]) {
+            if (completedGrid[y][x] & dir) continue;  // wall is present, can't pass
+            const [dx, dy] = DELTA[dir];
+            const nx = x + dx, ny = y + dy;
+            if (nx < 0 || nx >= width || ny < 0 || ny >= height) continue;
+            const nkey = `${nx},${ny}`;
+            if (visited.has(nkey)) continue;
+            visited.add(nkey);
+            parent.set(nkey, cellKey);
+            queue.push([nx, ny]);
+            newNeighbors.push([nx, ny]);
+        }
+
+        const nbStr = newNeighbors.length > 0
+            ? newNeighbors.map(c => `(${c[0]},${c[1]})`).join(' ')
+            : 'none (all blocked or already visited)';
+
+        steps.push(snap('bfs-explore', cell, [...queue], new Set(visited), null, [
+            `x, y = queue.popleft() -> (${x},${y})`,
+            `Neighbours added to queue: ${nbStr}`,
+            `Queue size: ${queue.length}  |  Explored: ${visited.size} cells`,
+        ].join('\n')));
+    }
+
+    if (!foundExit) {
+        steps.push(snap('bfs-done', null, [], new Set(visited), null, [
+            `Queue empty — no path exists from entry to exit.`,
+            `${visited.size} cells explored.`,
+        ].join('\n')));
+    }
+
+    return steps;
+}
+
+// ─── Canvas ───────────────────────────────────────────────────────────────────
 const canvas = document.getElementById('c');
 const ctx = canvas.getContext('2d');
 
 let CELL = 36;
 let W = 15, H = 11, SEED = 42;
-let data = null;   // { steps, entry, exit_ }
-let cur = 0;
+let dfsData  = null;  // { steps, entry, exit_, finalGrid, patternCells }
+let bfsSteps = null;  // array of BFS step objects
+let mode = 'dfs';     // 'dfs' or 'bfs'
+let cur  = 0;
 let playing = false;
-let timer = null;
+let timer   = null;
 
 function cellSize(w, h) {
     const maxW = Math.min(window.innerWidth - 340, 900);
-    const maxH = 600;
-    return Math.max(12, Math.min(48, Math.floor(Math.min(maxW / w, maxH / h))));
+    return Math.max(12, Math.min(48, Math.floor(Math.min(maxW / w, 600 / h))));
 }
 
-function draw() {
-    const step = data.steps[cur];
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
+function currentSteps() {
+    return mode === 'dfs' ? dfsData.steps : bfsSteps;
+}
 
-    const stackKeys = new Set(step.stack.map(c => `${c[0]},${c[1]}`));
-    const curKey    = step.current ? `${step.current[0]},${step.current[1]}` : null;
-
-    // ── Cell backgrounds ──────────────────────────────────────────────────────
-    // Light theme: walls are dark lines, cells are light — maximum contrast.
-    ctx.fillStyle = '#e2e8f0';  // gap / canvas bg matches wall grid colour
+// ─── Drawing helpers ──────────────────────────────────────────────────────────
+// draws cell fills, walls, and outer border — no labels
+function drawGrid(fillFn, grid) {
+    ctx.fillStyle = '#e2e8f0';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
     for (let y = 0; y < H; y++) {
         for (let x = 0; x < W; x++) {
-            const key = `${x},${y}`;
-            let fill;
-
-            if (step.patternCells.has(key))      fill = '#1e293b';   // dark navy
-            else if (key === curKey)              fill = '#f97316';   // vivid orange
-            else if (stackKeys.has(key))         fill = '#60a5fa';   // solid sky-blue
-            else if (step.visited.has(key))      fill = '#86efac';   // mint green
-            else                                 fill = '#f8fafc';   // near white
-
-            ctx.fillStyle = fill;
+            ctx.fillStyle = fillFn(x, y);
             ctx.fillRect(x * CELL + 1, y * CELL + 1, CELL - 2, CELL - 2);
         }
     }
 
-    // ── Internal walls ────────────────────────────────────────────────────────
-    // Thick dark lines — clearly visible against the light cell fills.
     ctx.strokeStyle = '#1e293b';
     ctx.lineWidth = Math.max(2, Math.ceil(CELL / 10));
     ctx.lineCap = 'square';
-
     for (let y = 0; y < H; y++) {
         for (let x = 0; x < W; x++) {
-            const cell = step.grid[y][x];
-
-            // East wall between (x,y) and (x+1,y)
+            const cell = grid[y][x];
             if (x < W - 1 && (cell & E)) {
                 ctx.beginPath();
                 ctx.moveTo((x + 1) * CELL, y * CELL);
                 ctx.lineTo((x + 1) * CELL, (y + 1) * CELL);
                 ctx.stroke();
             }
-
-            // South wall between (x,y) and (x,y+1)
             if (y < H - 1 && (cell & S)) {
                 ctx.beginPath();
                 ctx.moveTo(x * CELL, (y + 1) * CELL);
@@ -527,32 +619,53 @@ function draw() {
         }
     }
 
-    // ── Outer border ──────────────────────────────────────────────────────────
     ctx.strokeStyle = '#0f172a';
     ctx.lineWidth = 3;
     ctx.strokeRect(1, 1, W * CELL - 2, H * CELL - 2);
+}
 
-    // ── Broken-wall highlight ─────────────────────────────────────────────────
-    // When the DFS just moved, draw a bright amber line ACROSS the newly opened
-    // passage so it's instantly obvious which wall was just knocked down.
+// draws E and X labels; darkens them on amber path cells for readability
+function drawLabels(pathKeys) {
+    const fs = Math.max(9, Math.floor(CELL * 0.38));
+    ctx.font = `bold ${fs}px monospace`;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+
+    const [ex, ey] = dfsData.entry;
+    ctx.fillStyle = pathKeys && pathKeys.has(`${ex},${ey}`) ? '#92400e' : '#ff69b4';
+    ctx.fillText('E', ex * CELL + CELL / 2, ey * CELL + CELL / 2);
+
+    const [xx, xy] = dfsData.exit_;
+    ctx.fillStyle = pathKeys && pathKeys.has(`${xx},${xy}`) ? '#92400e' : '#e74c3c';
+    ctx.fillText('X', xx * CELL + CELL / 2, xy * CELL + CELL / 2);
+}
+
+// ─── DFS render ───────────────────────────────────────────────────────────────
+function drawDFS(step) {
+    const stackKeys = new Set(step.stack.map(c => `${c[0]},${c[1]}`));
+    const curKey    = step.current ? `${step.current[0]},${step.current[1]}` : null;
+
+    drawGrid((x, y) => {
+        const key = `${x},${y}`;
+        if (step.patternCells.has(key)) return '#1e293b';
+        if (key === curKey)             return '#f97316';
+        if (stackKeys.has(key))        return '#60a5fa';
+        if (step.visited.has(key))     return '#86efac';
+        return '#f8fafc';
+    }, step.grid);
+
+    // amber arrow showing the wall just broken
     if (step.moved === true && step.stack.length >= 2) {
         const prev = step.stack[step.stack.length - 2];
         const curr = step.stack[step.stack.length - 1];
-        const x1 = prev[0] * CELL + CELL / 2;
-        const y1 = prev[1] * CELL + CELL / 2;
-        const x2 = curr[0] * CELL + CELL / 2;
-        const y2 = curr[1] * CELL + CELL / 2;
+        const x1 = prev[0] * CELL + CELL / 2, y1 = prev[1] * CELL + CELL / 2;
+        const x2 = curr[0] * CELL + CELL / 2, y2 = curr[1] * CELL + CELL / 2;
 
-        // Thick amber arrow from centre of prev → centre of curr
         ctx.strokeStyle = '#fbbf24';
         ctx.lineWidth = Math.max(3, CELL / 7);
         ctx.lineCap = 'round';
-        ctx.beginPath();
-        ctx.moveTo(x1, y1);
-        ctx.lineTo(x2, y2);
-        ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke();
 
-        // Arrowhead at curr
         const angle = Math.atan2(y2 - y1, x2 - x1);
         const hs = Math.max(5, CELL / 4);
         ctx.fillStyle = '#fbbf24';
@@ -560,94 +673,147 @@ function draw() {
         ctx.moveTo(x2, y2);
         ctx.lineTo(x2 - hs * Math.cos(angle - 0.4), y2 - hs * Math.sin(angle - 0.4));
         ctx.lineTo(x2 - hs * Math.cos(angle + 0.4), y2 - hs * Math.sin(angle + 0.4));
-        ctx.closePath();
-        ctx.fill();
+        ctx.closePath(); ctx.fill();
     }
 
-    // ── Labels: E and X ───────────────────────────────────────────────────────
-    const fs = Math.max(9, Math.floor(CELL * 0.38));
-    ctx.font = `bold ${fs}px monospace`;
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
+    drawLabels(null);
 
-    const [ex, ey] = data.entry;
-    ctx.fillStyle = '#ff69b4';
-    ctx.fillText('E', ex * CELL + CELL / 2, ey * CELL + CELL / 2);
-
-    const [xx, xy] = data.exit_;
-    ctx.fillStyle = '#e74c3c';
-    ctx.fillText('X', xx * CELL + CELL / 2, xy * CELL + CELL / 2);
-
-    // ── Highlight the current cell's hex value ────────────────────────────────
+    // hex value on current cell
     if (step.current && CELL >= 24) {
         const [cx, cy] = step.current;
-        const val = step.grid[cy][cx];
-        const hex = val.toString(16).toUpperCase();
         ctx.fillStyle = 'rgba(0,0,0,0.65)';
         ctx.font = `bold ${Math.max(7, Math.floor(CELL * 0.22))}px monospace`;
-        ctx.fillText(`0x${hex}`, cx * CELL + CELL / 2, cy * CELL + CELL * 0.78);
+        ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+        ctx.fillText(`0x${step.grid[cy][cx].toString(16).toUpperCase()}`,
+            cx * CELL + CELL / 2, cy * CELL + CELL * 0.78);
+    }
+}
+
+// ─── BFS render ───────────────────────────────────────────────────────────────
+function drawBFS(step) {
+    const queueKeys = new Set(step.queue.map(c => `${c[0]},${c[1]}`));
+    const pathKeys  = step.path ? new Set(step.path.map(c => `${c[0]},${c[1]}`)) : new Set();
+    const curKey    = step.current ? `${step.current[0]},${step.current[1]}` : null;
+
+    // always draw walls from the completed maze (never changes during BFS)
+    drawGrid((x, y) => {
+        const key = `${x},${y}`;
+        if (dfsData.patternCells.has(key)) return '#1e293b';
+        if (pathKeys.has(key))             return '#fbbf24';  // solution path
+        if (key === curKey)                return '#f97316';  // cell being processed
+        if (queueKeys.has(key))           return '#a78bfa';  // in queue (frontier)
+        if (step.visited.has(key))        return '#86efac';  // already explored
+        return '#f8fafc';
+    }, dfsData.finalGrid);
+
+    // draw a line connecting path cells when reconstructing
+    if (step.path && step.path.length >= 2) {
+        ctx.strokeStyle = '#d97706';
+        ctx.lineWidth = Math.max(2, CELL / 9);
+        ctx.lineCap = 'round';
+        ctx.lineJoin = 'round';
+        ctx.beginPath();
+        const [px0, py0] = step.path[0];
+        ctx.moveTo(px0 * CELL + CELL / 2, py0 * CELL + CELL / 2);
+        for (let i = 1; i < step.path.length; i++) {
+            const [px, py] = step.path[i];
+            ctx.lineTo(px * CELL + CELL / 2, py * CELL + CELL / 2);
+        }
+        ctx.stroke();
     }
 
-    // ── UI ────────────────────────────────────────────────────────────────────
-    const badge  = document.getElementById('phaseBadge');
-    badge.className = `phase-badge phase-${step.phase}`;
-    badge.textContent = step.phase.toUpperCase();
+    drawLabels(pathKeys);
+}
+
+// ─── Main draw dispatcher ─────────────────────────────────────────────────────
+function draw() {
+    const step = currentSteps()[cur];
+    if (mode === 'dfs') drawDFS(step);
+    else                drawBFS(step);
+    updateUI(step);
+}
+
+function updateUI(step) {
+    // phase badge
+    const badge = document.getElementById('phaseBadge');
+    badge.className = `phase-${step.phase}`;
+    badge.textContent = step.phase.toUpperCase().replace(/-/g, ' ');
 
     document.getElementById('description').textContent = step.description;
-    document.getElementById('stepCounter').textContent =
-        `Step ${cur + 1} / ${data.steps.length}`;
+    const total = currentSteps().length;
+    document.getElementById('stepCounter').textContent = `Step ${cur + 1} / ${total}`;
     document.getElementById('progress').style.width =
-        `${Math.round((cur / (data.steps.length - 1)) * 100)}%`;
-
-    // Stack vis (show up to 30 items; oldest at top of DOM = bottom of stack)
-    const vis = document.getElementById('stackVis');
-    document.getElementById('stackDepth').textContent = `(depth ${step.stack.length})`;
-    if (step.stack.length === 0) {
-        vis.innerHTML = '<span class="stack-empty">— empty —</span>';
-    } else {
-        const shown = step.stack.slice(-30);
-        vis.innerHTML = shown.map((c, i) => {
-            const isTop = i === shown.length - 1;
-            return `<div class="stack-item${isTop ? ' top' : ''}">(${c[0]},${c[1]})</div>`;
-        }).join('');
-        // Scroll to bottom (top of stack = newest = last child)
-        vis.scrollTop = vis.scrollHeight;
-    }
-
+        `${Math.round((cur / Math.max(1, total - 1)) * 100)}%`;
     document.getElementById('prevBtn').disabled = cur === 0;
-    document.getElementById('nextBtn').disabled = cur === data.steps.length - 1;
+    document.getElementById('nextBtn').disabled = cur === total - 1;
+
+    if (mode === 'dfs') {
+        const vis = document.getElementById('stackVis');
+        document.getElementById('stackDepth').textContent = `(depth ${step.stack.length})`;
+        if (step.stack.length === 0) {
+            vis.innerHTML = '<span class="stack-empty">empty</span>';
+        } else {
+            const shown = step.stack.slice(-30);
+            vis.innerHTML = shown.map((c, i) => {
+                const isTop = i === shown.length - 1;
+                return `<div class="stack-item${isTop ? ' top' : ''}">(${c[0]},${c[1]})</div>`;
+            }).join('');
+            vis.scrollTop = vis.scrollHeight;
+        }
+    } else {
+        const vis = document.getElementById('queueVis');
+        document.getElementById('queueSize').textContent = `(size ${step.queue.length})`;
+        if (step.queue.length === 0) {
+            vis.innerHTML = '<span class="stack-empty">empty</span>';
+        } else {
+            const shown = step.queue.slice(0, 30);  // front of queue first
+            vis.innerHTML = shown.map((c, i) => {
+                const isFront = i === 0;
+                return `<div class="queue-item${isFront ? ' front' : ''}">${isFront ? 'next: ' : '      '}(${c[0]},${c[1]})</div>`;
+            }).join('');
+            vis.scrollTop = 0;
+        }
+    }
 }
 
+// ─── Playback ─────────────────────────────────────────────────────────────────
 function forward() {
-    if (cur < data.steps.length - 1) { cur++; draw(); }
+    if (cur < currentSteps().length - 1) { cur++; draw(); }
     else stopPlay();
 }
-
-function back() {
-    if (cur > 0) { cur--; draw(); }
-}
+function back() { if (cur > 0) { cur--; draw(); } }
 
 function stopPlay() {
     playing = false;
     if (timer) { clearInterval(timer); timer = null; }
-    document.getElementById('playBtn').textContent = '▶ Play';
+    document.getElementById('playBtn').textContent = 'Play';
     document.getElementById('playBtn').classList.remove('active');
 }
-
 function startPlay() {
     playing = true;
-    document.getElementById('playBtn').textContent = '⏸ Pause';
+    document.getElementById('playBtn').textContent = 'Pause';
     document.getElementById('playBtn').classList.add('active');
-    const fps = parseInt(document.getElementById('speed').value);
-    timer = setInterval(forward, 1000 / fps);
+    timer = setInterval(forward, 1000 / parseInt(document.getElementById('speed').value));
+}
+
+function setMode(m) {
+    stopPlay();
+    mode = m;
+    cur  = 0;
+    document.getElementById('tabDFS').classList.toggle('active', m === 'dfs');
+    document.getElementById('tabBFS').classList.toggle('active', m === 'bfs');
+    document.getElementById('dfsPanel').classList.toggle('hidden', m !== 'dfs');
+    document.getElementById('bfsPanel').classList.toggle('hidden', m !== 'bfs');
+    document.getElementById('dfsLegend').classList.toggle('hidden', m !== 'dfs');
+    document.getElementById('bfsLegend').classList.toggle('hidden', m !== 'bfs');
+    draw();
 }
 
 function rebuild() {
     stopPlay();
-    W = Math.max(5, Math.min(30, parseInt(document.getElementById('wInput').value) || 15));
-    H = Math.max(5, Math.min(25, parseInt(document.getElementById('hInput').value) || 11));
+    W    = Math.max(5, Math.min(30, parseInt(document.getElementById('wInput').value) || 15));
+    H    = Math.max(5, Math.min(25, parseInt(document.getElementById('hInput').value) || 11));
     SEED = parseInt(document.getElementById('sInput').value) || 42;
-
     document.getElementById('wInput').value = W;
     document.getElementById('hInput').value = H;
 
@@ -655,26 +821,31 @@ function rebuild() {
     canvas.width  = W * CELL;
     canvas.height = H * CELL;
 
-    data = buildSteps(W, H, SEED);
-    cur  = 0;
+    dfsData  = buildDFSSteps(W, H, SEED);
+    bfsSteps = buildBFSSteps(
+        dfsData.finalGrid, W, H,
+        dfsData.entry, dfsData.exit_,
+        dfsData.patternCells
+    );
+
+    cur = 0;
     draw();
 }
 
 // ─── Events ───────────────────────────────────────────────────────────────────
-document.getElementById('playBtn').addEventListener('click', () => {
-    if (playing) stopPlay(); else startPlay();
-});
+document.getElementById('playBtn').addEventListener('click', () => playing ? stopPlay() : startPlay());
 document.getElementById('nextBtn').addEventListener('click', () => { stopPlay(); forward(); });
 document.getElementById('prevBtn').addEventListener('click', () => { stopPlay(); back(); });
 document.getElementById('resetBtn').addEventListener('click', () => { stopPlay(); cur = 0; draw(); });
 document.getElementById('rebuildBtn').addEventListener('click', rebuild);
+document.getElementById('tabDFS').addEventListener('click', () => setMode('dfs'));
+document.getElementById('tabBFS').addEventListener('click', () => setMode('bfs'));
 
 document.getElementById('speed').addEventListener('input', function () {
     document.getElementById('speedLabel').textContent = `${this.value}/s`;
     if (playing) { stopPlay(); startPlay(); }
 });
 
-// Keyboard shortcuts
 document.addEventListener('keydown', e => {
     if (e.target.tagName === 'INPUT') return;
     if (e.key === 'ArrowRight' || e.key === 'l') { stopPlay(); forward(); }
