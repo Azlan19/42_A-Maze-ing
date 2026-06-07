@@ -55,7 +55,7 @@ def _cell_char(
     if (x, y) == exit:
         return RED + " X" + RESET
     if (x, y) in pattern_cells:
-        return DARK_GREY + "##" + RESET
+        return DARK_GREY + "██" + RESET
     if (x, y) in path_cells:
         return CYAN + " ." + RESET
     return "  "
@@ -68,14 +68,14 @@ def _top_border(
     wall_colour: str
 ) -> str:
     """Build the horizontal border line above a given row"""
-    output = wall_colour + "+" + RESET
+    output = wall_colour + "█" + RESET
     for col in range(width):
         # row == 0 always writes the wall,
         # grid[row][col] & NORTH writes if NORTH is a wall
         if row == 0 or grid[row][col] & NORTH:
-            output += wall_colour + "--+" + RESET
+            output += wall_colour + "███" + RESET
         else:
-            output += "  " + wall_colour + "+" + RESET
+            output += "  " + wall_colour + "█" + RESET
     return output
 
 
@@ -84,9 +84,9 @@ def _bottom_border(
     wall_colour: str
 ) -> str:
     """Build the horizontal bottom border line"""
-    output = wall_colour + "+" + RESET
+    output = wall_colour + "█" + RESET
     for _ in range(width):
-        output += wall_colour + "--+" + RESET
+        output += wall_colour + "███" + RESET
     return output
 
 
@@ -104,11 +104,11 @@ def _cell_line(
     output = ""
     for col in range(width):
         if col == 0 or grid[row][col] & WEST:
-            output += wall_colour + "|" + RESET
+            output += wall_colour + "█" + RESET
         else:
             output += " "
         output += _cell_char(col, row, entry, exit, path_cells, pattern_cells)
-    output += wall_colour + "|" + RESET
+    output += wall_colour + "█" + RESET
     return output
 
 
