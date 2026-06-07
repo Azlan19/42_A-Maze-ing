@@ -78,14 +78,17 @@ with mazes from any source.
 ## Team and project management
 
 **Roles**
-- **oazlan** — Parsing the config file and algorithm 
+- **oazlan** — Parsing the config file and algorithm
 - **dzhukov** — Generating the maze and displaying it
 
-**Planning:** Although we set "roles" for this project, a lot of it was completed together on 1 machine. This way
-we were able to understand every aspect of the project without having to relearn
+**Planning:** Although we set "roles" for this project, a lot of it was
+completed together on 1 machine. This way we were able to understand every
+aspect of the project without having to relearn
 
-**What worked / could improve:** We decided early on on what we wanted to achieve and in what format, so there was
-no time wasted discussing and planning. Maybe we could work more individually to learn the whole process with branching
+**What worked / could improve:** We decided early on on what we wanted to
+achieve and in what format, so there was
+no time wasted discussing and planning. Maybe we could work more individually
+to learn the whole process with branching
 in git since the group projects rely on this.
 
 **Tools:** Git/GitHub, pytest, flake8, mypy, and Claude Code (see Resources).
@@ -93,8 +96,11 @@ in git since the group projects rely on this.
 ## Resources
 
 
-- TUM Data Science I (Data Structures) Course for the BFS and DFS algorithm  
-- 42 A-Maze-ing subject  
-- Asking a lot of other 42 students  
+- TUM Data Science I (Data Structures) Course for the BFS and DFS algorithm
+- 42 A-Maze-ing subject
+- Asking a lot of other 42 students
 
-**AI usage:** Claude - To understand packages, dsiplaying the maze in the terminal, and structure of the project
+**AI usage:** Claude
+- To understand concepts and theory abou packages, dsiplaying the maze
+in the terminal, and structure of the project
+- Generating an html file visualising maze generation and path finder
