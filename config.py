@@ -69,8 +69,8 @@ def parse_config(path: str) -> MazeConfig:
 # Helper function to parse through coordinates
 def _parse_coordinates(value: str, key: str, width: int, height: int) -> tuple[int, int]:
     try:
-        x, y = value.split(",")
-        x, y = int(x), int(y)
+        raw_x, raw_y = value.split(",")
+        x, y = int(raw_x), int(raw_y)
     except ValueError:
         raise ValueError(f"{key} must be in x,y format")
     if not (0 <= x < width and 0 <= y < height):
