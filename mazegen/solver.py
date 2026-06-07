@@ -43,6 +43,7 @@ def solve(
             if 0 <= nx < width and 0 <= ny < height:
                 if (nx, ny) not in visited:
                     visited.add((nx, ny))
+                    # add the direction we came from for path reconstruction
                     parent[(nx, ny)] = ((x, y), direction)
                     # added to the back of the queue to be processed
                     queue.append((nx, ny))
