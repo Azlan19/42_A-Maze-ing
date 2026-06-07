@@ -109,7 +109,7 @@ class MazeGenerator:
         ]
 
         # We'll store the solution path here after generation.
-        self.solution: list[str] = []
+        # self.solution: list[str] = []
 
         # Seed the random number generator for reproducibility.
         # If seed is None, random.seed(None) uses system time — still works.

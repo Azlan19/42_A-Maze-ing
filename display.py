@@ -57,7 +57,7 @@ def _cell_char(
     if (x, y) in pattern_cells:
         return DARK_GREY + "██" + RESET
     if (x, y) in path_cells:
-        return CYAN + " ." + RESET
+        return CYAN + ".." + RESET
     return "  "
 
 
