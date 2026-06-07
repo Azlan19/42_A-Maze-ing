@@ -29,37 +29,37 @@ DIRECTION_DELTA: dict[int, tuple[int, int]] = {
 
 
 # --- "42" pattern bitmaps ---------------------------------------------------
-# Each digit is a 5x5 pixel drawing. 1 = solid block, 0 = empty.
+# Each digit is a 5x3 pixel drawing. 1 = solid block, 0 = empty.
 # You can read the shapes straight out of the 1s.
 
 # "4"
 _FOUR: list[list[int]] = [
-    [1, 0, 1, 0, 0],
-    [1, 0, 1, 0, 0],
-    [1, 1, 1, 1, 1],
-    [0, 0, 1, 0, 0],
-    [0, 0, 1, 0, 0],
+    [1, 0, 0],
+    [1, 0, 0],
+    [1, 1, 1],
+    [0, 0, 1],
+    [0, 0, 1],
 ]
 
 # "2"
 _TWO: list[list[int]] = [
-    [1, 1, 1, 1, 0],
-    [0, 0, 0, 1, 0],
-    [0, 1, 1, 1, 0],
-    [1, 0, 0, 0, 0],
-    [1, 1, 1, 1, 1],
+    [1, 1, 1],
+    [0, 0, 1],
+    [1, 1, 1],
+    [1, 0, 0],
+    [1, 1, 1],
 ]
 
 # Each bitmap pixel is scaled into a _SCALE x _SCALE block of maze cells so the
 # "42" is big enough to read in the rendered maze.
-_SCALE = 2                          # cells per bitmap pixel
-_DIGIT_W = 5 * _SCALE               # 10 cells wide per digit
-_DIGIT_H = 5 * _SCALE               # 10 cells tall per digit
-_GAP = 4                            # blank cells between "4" and "2"
-_PATTERN_W = _DIGIT_W * 2 + _GAP    # 24 cells wide for the whole "42"
-_PATTERN_H = _DIGIT_H               # 10 cells tall
-_MIN_W = _PATTERN_W + 4             # 28 = min maze width to fit "42" + margin
-_MIN_H = _PATTERN_H + 4             # 14 = min maze height to fit "42" + margin
+_SCALE = 1                          # cells per bitmap pixel
+_DIGIT_W = 3 * _SCALE               # 3 cells wide per digit
+_DIGIT_H = 5 * _SCALE               # 5 cells tall per digit
+_GAP = 1                            # blank cells between "4" and "2"
+_PATTERN_W = _DIGIT_W * 2 + _GAP    # 7 cells wide for the whole "42"
+_PATTERN_H = _DIGIT_H               # 5 cells tall
+_MIN_W = _PATTERN_W + 4             # 11 = min maze width to fit "42" + margin
+_MIN_H = _PATTERN_H + 4             # 9 = min maze height to fit "42" + margin
 
 
 class MazeGenerator:
@@ -92,7 +92,10 @@ class MazeGenerator:
         # exit defaults to None in the signature, so resolve it here:
         # the bottom-right corner is (width-1, height-1).
         self.entry = entry
-        self.exit = exit if exit is not None else (width - 1, height - 1)
+        if exit is not None:
+            self.exit = exit
+        else:
+            self.exit = (width - 1, height - 1)
 
         # Cells occupied by the "42" drawing. Filled during generate().
         self.pattern_cells: set[tuple[int, int]] = set()
@@ -112,10 +115,10 @@ class MazeGenerator:
         # If seed is None, random.seed(None) uses system time — still works.
         random.seed(self.seed)
 
-    def print_grid_raw(self) -> None:
-        """Print the raw hex values of the grid. For debugging only."""
-        for row in self.grid:
-            print(" ".join(f"{cell:X}" for cell in row))
+    # def print_grid_raw(self) -> None:
+    #     """Print the raw hex values of the grid. For debugging only."""
+    #     for row in self.grid:
+    #         print(" ".join(f"{cell:X}" for cell in row))
 
     def generate(self) -> None:
         """Generate the maze. Populates self.grid and self.pattern_cells."""
@@ -201,7 +204,7 @@ class MazeGenerator:
         # Stamp each digit. The "2" starts one digit-width + gap to the right.
         for bitmap, digit_offset_x in [(_FOUR, 0), (_TWO, _DIGIT_W + _GAP)]:
             for row in range(5):
-                for col in range(5):
+                for col in range(3):
                     if not bitmap[row][col]:
                         continue
                     # Scale this 1 pixel up into a _SCALE x _SCALE block.
