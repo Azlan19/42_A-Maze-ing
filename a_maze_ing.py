@@ -11,12 +11,6 @@ from display import render, WALL_COLOURS
 def _clear() -> None:
     sys.stdout.write("\033[2J\033[H")
     sys.stdout.flush()
-    # os.system("clear")
-    # print("\033[2J\033[H", end="")
-    # \033[2J — ANSI escape code that clears the entire terminal screen.
-    # \033[H — moves the cursor back to the top-left corner.
-    # end="" — prevents print() from adding an extra newline after the
-    # escape codes.
 
 
 def _generate(
@@ -34,7 +28,7 @@ def _generate(
     mg.generate()
     path = solve(mg.grid, mg.entry, mg.exit, mg.width, mg.height)
     return mg, path
-    # Helper function because need to generate the maze twice:
+    # helper function because need to generate the maze twice
     # at startup and again every rerun
 
 
