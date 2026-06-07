@@ -23,28 +23,28 @@ def solve(
     if entry == exit:
         return []
 
-    # Tracks which cells have been seen
+    # tracks which cells have been seen
     visited: set[tuple[int, int]] = {entry}
-    # Maps each cell to (the cell we came from, the direction we took)
+    # maps each cell to the cell we came from, the direction we took
     parent: dict[tuple[int, int], tuple[tuple[int, int], int]] = {}
-    queue: deque[tuple[int, int]] = deque([entry])  # Start with the entry cell
+    queue: deque[tuple[int, int]] = deque([entry])  # start with the entry cell
 
     while queue:
-        x, y = queue.popleft()  # Processes 1 cell at a time from the beginning
+        x, y = queue.popleft()  # processes 1 cell at a time from the beginning
 
         if (x, y) == exit:
-            # Return path with helper function
+            # return path with helper function
             return _reconstruct_path(parent, entry, exit)
 
         for direction, (dx, dy) in DIRECTION_DELTA.items():
-            if grid[y][x] & direction:  # If wall, continue
+            if grid[y][x] & direction:  # if wall continue
                 continue
             nx, ny = x + dx, y + dy  # set neighbour coordinates
             if 0 <= nx < width and 0 <= ny < height:
                 if (nx, ny) not in visited:
                     visited.add((nx, ny))
                     parent[(nx, ny)] = ((x, y), direction)
-                    # Added to the back of the queue to be processed
+                    # added to the back of the queue to be processed
                     queue.append((nx, ny))
 
     return []
