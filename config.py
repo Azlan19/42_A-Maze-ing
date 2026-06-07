@@ -40,8 +40,8 @@ def parse_config(path: str) -> MazeConfig:
     if width < 1 or height < 1:
         raise ValueError("WIDTH and HEIGHT must be positive")
 
-    entry = _parse_coordinates(raw["ENTRY"], "ENTRY", width, height)
-    exit_ = _parse_coordinates(raw["EXIT"], "EXIT", width, height)
+    entry = _p_coord(raw["ENTRY"], "ENTRY", width, height)
+    exit_ = _p_coord(raw["EXIT"], "EXIT", width, height)
     if entry == exit_:
         raise ValueError("ENTRY and EXIT must be different")
 
@@ -67,7 +67,7 @@ def parse_config(path: str) -> MazeConfig:
 
 
 # Helper function to parse through coordinates
-def _parse_coordinates(value: str, key: str, width: int, height: int) -> tuple[int, int]:
+def _p_coord(value: str, key: str, width: int, height: int) -> tuple[int, int]:
     try:
         raw_x, raw_y = value.split(",")
         x, y = int(raw_x), int(raw_y)

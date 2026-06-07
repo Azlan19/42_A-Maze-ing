@@ -40,11 +40,12 @@ def solve(
             if grid[y][x] & direction:  # If wall, continue
                 continue
             nx, ny = x + dx, y + dy  # set neighbour coordinates
-            if 0 <= nx < width and 0 <= ny < height and (nx, ny) not in visited:
-                visited.add((nx, ny))
-                parent[(nx, ny)] = ((x, y), direction)
-                # Added to the back of the queue to be processed
-                queue.append((nx, ny))
+            if 0 <= nx < width and 0 <= ny < height:
+                if (nx, ny) not in visited:
+                    visited.add((nx, ny))
+                    parent[(nx, ny)] = ((x, y), direction)
+                    # Added to the back of the queue to be processed
+                    queue.append((nx, ny))
 
     return []
 
