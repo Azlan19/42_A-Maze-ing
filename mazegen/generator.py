@@ -1,14 +1,12 @@
 import random
 
-# Wall bit flags — each wall is one bit in the cell's integer value
 NORTH: int = 1   # bit 0 — 0001
 EAST:  int = 2   # bit 1 — 0010
 SOUTH: int = 4   # bit 2 — 0100
 WEST:  int = 8   # bit 3 — 1000
 
 
-# When moving in a direction, what's the opposite wall on the neighbour?
-# If I go East into a neighbour, that neighbour's West wall is what I crossed.
+# opposite walls of the neighbours
 OPPOSITE: dict[int, int] = {
     NORTH: SOUTH,
     SOUTH: NORTH,
@@ -16,23 +14,16 @@ OPPOSITE: dict[int, int] = {
     WEST:  EAST,
 }
 
-# Moving in a direction changes your coordinates by (dx, dy)
+# moving directions
 DIRECTION_DELTA: dict[int, tuple[int, int]] = {
-    NORTH: (0, -1),   # North = up = y decreases
-    EAST:  (1,  0),   # East  = right = x increases
-    SOUTH: (0,  1),   # South = down = y increases
-    WEST:  (-1, 0),   # West  = left = x decreases
+    NORTH: (0, -1),   # north = up = y decreases
+    EAST:  (1,  0),   # east  = right = x increases
+    SOUTH: (0,  1),   # south = down = y increases
+    WEST:  (-1, 0),   # west  = left = x decreases
 }
-# Why NORTH = (0, -1) and not (0, 1)? In a 2D list, grid[0] is the top row,
-# so moving North means going to a SMALLER row index. Lock this in now --
-# it trips up almost everyone.
 
 
-# --- "42" pattern bitmaps ---------------------------------------------------
-# Each digit is a 5x3 pixel drawing. 1 = solid block, 0 = empty.
-# You can read the shapes straight out of the 1s.
-
-# "4"
+# 42 pattern bitmaps
 _FOUR: list[list[int]] = [
     [1, 0, 1],
     [1, 0, 1],
@@ -41,7 +32,6 @@ _FOUR: list[list[int]] = [
     [0, 0, 1],
 ]
 
-# "2"
 _TWO: list[list[int]] = [
     [1, 1, 1],
     [0, 0, 1],
@@ -50,16 +40,14 @@ _TWO: list[list[int]] = [
     [1, 1, 1],
 ]
 
-# Each bitmap pixel is scaled into a _SCALE x _SCALE block of maze cells so the
-# "42" is big enough to read in the rendered maze.
-_SCALE = 1                          # cells per bitmap pixel
-_DIGIT_W = 3 * _SCALE               # 3 cells wide per digit
-_DIGIT_H = 5 * _SCALE               # 5 cells tall per digit
-_GAP = 1                            # blank cells between "4" and "2"
-_PATTERN_W = _DIGIT_W * 2 + _GAP    # 7 cells wide for the whole "42"
+
+_DIGIT_W = 3
+_DIGIT_H = 5
+_GAP = 1                            # blank cells between 4 and 2
+_PATTERN_W = _DIGIT_W * 2 + _GAP    # 7 cells wide for the whole 42
 _PATTERN_H = _DIGIT_H               # 5 cells tall
-_MIN_W = _PATTERN_W + 4             # 11 = min maze width to fit "42" + margin
-_MIN_H = _PATTERN_H + 4             # 9 = min maze height to fit "42" + margin
+_MIN_W = _PATTERN_W + 4             # 11 = min maze width to fit 42
+_MIN_H = _PATTERN_H + 4             # 9 = min maze height to fit 42
 
 
 class MazeGenerator:
@@ -70,8 +58,8 @@ class MazeGenerator:
         height: Number of cells vertically.
         seed: Optional integer seed for reproducibility.
         perfect: If True, one path between any two cells (no loops).
-        entry: (x, y) start cell. Defaults to (0, 0) — the top-left corner.
-        exit: (x, y) end cell. Defaults to (width-1, height-1) — bottom-right.
+        entry: (x, y) start cell. Defaults to (0, 0) the top-left corner.
+        exit: (x, y) end cell. Defaults to (width-1, height-1) bottom-right.
     """
 
     def __init__(
@@ -88,46 +76,28 @@ class MazeGenerator:
         self.perfect = perfect
         self.seed = seed
 
-        # Where the maze starts and ends.
-        # exit defaults to None in the signature, so resolve it here:
-        # the bottom-right corner is (width-1, height-1).
+        # Where the maze starts and ends
         self.entry = entry
         if exit is not None:
             self.exit = exit
         else:
             self.exit = (width - 1, height - 1)
 
-        # Cells occupied by the "42" drawing. Filled during generate().
+        # 42 pattern cells
         self.pattern_cells: set[tuple[int, int]] = set()
 
-        # This is the maze. A 2D list of integers.
-        # grid[row][col] — grid[0][0] is top-left.
-        # Every cell starts with ALL FOUR walls closed (value 0xF = 15).
-        self.grid: list[list[int]] = [
-            [0xF for _ in range(width)]
-            for _ in range(height)
-        ]
-
-        # We'll store the solution path here after generation.
-        self.solution: list[str] = []
-
-        # Seed the random number generator for reproducibility.
-        # If seed is None, random.seed(None) uses system time — still works.
+        self.grid: list[list[int]] = self._fresh_grid()
         random.seed(self.seed)
 
-    # def print_grid_raw(self) -> None:
-    #     """Print the raw hex values of the grid. For debugging only."""
-    #     for row in self.grid:
-    #         print(" ".join(f"{cell:X}" for cell in row))
+    def _fresh_grid(self) -> list[list[int]]:
+        grid = []
+        for _ in range(self.height):
+            grid.append([0xF] * self.width)
+        return grid
 
     def generate(self) -> None:
         """Generate the maze. Populates self.grid and self.pattern_cells."""
-        # Start fresh: every cell sealed (all four walls up).
-        self.grid = [
-            [0xF for _ in range(self.width)]
-            for _ in range(self.height)
-        ]
-        # Seed the RNG here so each generate() call is reproducible.
+        self.grid = self._fresh_grid()
         random.seed(self.seed)
 
         # Mark the "42" cells as obstacles before carving.
@@ -207,12 +177,9 @@ class MazeGenerator:
                 for col in range(3):
                     if not bitmap[row][col]:
                         continue
-                    # Scale this 1 pixel up into a _SCALE x _SCALE block.
-                    for sr in range(_SCALE):
-                        for sc in range(_SCALE):
-                            cx = offset_x + digit_offset_x + col * _SCALE + sc
-                            cy = offset_y + row * _SCALE + sr
-                            self.pattern_cells.add((cx, cy))
+                    cx = offset_x + digit_offset_x + col
+                    cy = offset_y + row
+                    self.pattern_cells.add((cx, cy))
 
     def _add_loops(self) -> None:
         """Knock down extra walls to turn a perfect maze into a looped one.
@@ -225,6 +192,7 @@ class MazeGenerator:
         candidates: list[tuple[int, int, int]] = []  # (x, y, direction)
         for y in range(self.height):
             for x in range(self.width):
+                # skip 42 cells
                 if (x, y) in self.pattern_cells:
                     continue
                 if (x + 1 < self.width
