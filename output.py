@@ -17,12 +17,3 @@ def write_output(
         file.write(f"{entry[0]},{entry[1]}\n")
         file.write(f"{exit[0]},{exit[1]}\n")
         file.write("".join(path) + "\n")
-
-
-# test
-# grid = [[14, 0x6], [0x9, 0xC]]
-# entry = (0, 0)
-# exit = (1, 1)
-# path = ['E', 'S']
-
-# write_output(grid, entry, exit, path, 'test_output.txt')

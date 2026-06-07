@@ -17,7 +17,7 @@ class MazeConfig:
     seed: int | None
 
 
-# Parse through config file
+# parse through config file
 def parse_config(path: str) -> MazeConfig:
     raw: dict[str, str] = {}
     with open(path) as file:
@@ -66,7 +66,7 @@ def parse_config(path: str) -> MazeConfig:
         seed=seed)
 
 
-# Helper function to parse through coordinates
+# helper function to parse through coordinates
 def _p_coord(value: str, key: str, width: int, height: int) -> tuple[int, int]:
     try:
         raw_x, raw_y = value.split(",")

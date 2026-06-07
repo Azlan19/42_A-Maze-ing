@@ -1,15 +1,13 @@
 from mazegen.generator import NORTH, EAST, SOUTH, WEST, DIRECTION_DELTA
 
 # Ansi color code
-# Every color must be followed by RESET to stop color -
-# bleeding into next character
 RESET = "\033[0m"
 MAGENTA = "\033[35m"
 RED = "\033[31m"
 CYAN = "\033[36m"
 DARK_GREY = "\033[90m"
 
-# The list a_maze_ing.py cycles through when the user chooses an option
+# the list cycles through when the user chooses an option
 WALL_COLOURS: list[str] = [
     "\033[37m",  # white
     "\033[33m",  # yellow
@@ -17,7 +15,7 @@ WALL_COLOURS: list[str] = [
     "\033[34m",  # blue
 ]
 
-# Convert path letters back to direction name
+# convert path letters back to direction name
 _CHAR_TO_DIRECTION: dict[str, int] = {
     "N": NORTH,
     "E": EAST,
@@ -138,13 +136,3 @@ def render(
 
     lines.append(_bottom_border(width, wall_colour))
     print("\n".join(lines))
-
-
-# from mazegen.generator import MazeGenerator
-# from mazegen.solver import solve
-
-# mg = MazeGenerator(19, 19, seed=100)
-# mg.generate()
-# path = solve(mg.grid, mg.entry, mg.exit, mg.width, mg.height)
-# render(mg.grid, mg.width, mg.height, mg.entry, mg.exit,
-#        path, True, WALL_COLOURS[1], mg.pattern_cells)
