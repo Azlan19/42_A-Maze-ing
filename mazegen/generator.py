@@ -1,12 +1,11 @@
 import random
 
-NORTH: int = 1   # bit 0 — 0001
-EAST:  int = 2   # bit 1 — 0010
-SOUTH: int = 4   # bit 2 — 0100
-WEST:  int = 8   # bit 3 — 1000
+NORTH: int = 1   # bit 0 0001
+EAST:  int = 2   # bit 1 0010
+SOUTH: int = 4   # bit 2 0100
+WEST:  int = 8   # bit 3 1000
 
-
-# opposite walls of the neighbours
+# opposite wall on the neighbour
 OPPOSITE: dict[int, int] = {
     NORTH: SOUTH,
     SOUTH: NORTH,
@@ -14,12 +13,12 @@ OPPOSITE: dict[int, int] = {
     WEST:  EAST,
 }
 
-# moving directions
+# coordinate change per direction
 DIRECTION_DELTA: dict[int, tuple[int, int]] = {
-    NORTH: (0, -1),   # north = up = y decreases
-    EAST:  (1,  0),   # east  = right = x increases
-    SOUTH: (0,  1),   # south = down = y increases
-    WEST:  (-1, 0),   # west  = left = x decreases
+    NORTH: (0, -1),   # up y decreases
+    EAST:  (1,  0),   # right x increases
+    SOUTH: (0,  1),   # down y increases
+    WEST:  (-1, 0),   # left x decreases
 }
 
 
@@ -43,11 +42,11 @@ _TWO: list[list[int]] = [
 
 _DIGIT_W = 3
 _DIGIT_H = 5
-_GAP = 1                            # blank cells between 4 and 2
-_PATTERN_W = _DIGIT_W * 2 + _GAP    # 7 cells wide for the whole 42
-_PATTERN_H = _DIGIT_H               # 5 cells tall
-_MIN_W = _PATTERN_W + 4             # 11 = min maze width to fit 42
-_MIN_H = _PATTERN_H + 4             # 9 = min maze height to fit 42
+_GAP = 1                            # gap between 4 and 2
+_PATTERN_W = _DIGIT_W * 2 + _GAP   # total width of 42
+_PATTERN_H = _DIGIT_H               # total height of 42
+_MIN_W = _PATTERN_W + 4             # min maze width
+_MIN_H = _PATTERN_H + 4             # min maze height
 
 
 class MazeGenerator:
@@ -75,18 +74,15 @@ class MazeGenerator:
         self.height = height
         self.perfect = perfect
         self.seed = seed
-
-        # Where the maze starts and ends
         self.entry = entry
         if exit is not None:
             self.exit = exit
         else:
             self.exit = (width - 1, height - 1)
 
-        # 42 pattern cells
         self.pattern_cells: set[tuple[int, int]] = set()
-
         self.grid: list[list[int]] = self._fresh_grid()
+        self.solution: list[str] = []
         random.seed(self.seed)
 
     def _fresh_grid(self) -> list[list[int]]:
@@ -100,18 +96,13 @@ class MazeGenerator:
         self.grid = self._fresh_grid()
         random.seed(self.seed)
 
-        # Mark the "42" cells as obstacles before carving.
         self._embed_pattern()
-
-        # Carve passages with depth-first search (tunnels around the "42").
         self._carve_dfs()
 
-        # Safety pass: force every pattern cell back to fully sealed, in case
-        # a neighbour carved a wall that touches it.
+        # re-seal pattern cells in case a neighbour carved into them
         for px, py in self.pattern_cells:
             self.grid[py][px] = 0xF
 
-        # For an imperfect maze, knock down extra walls to create loops.
         if not self.perfect:
             self._add_loops()
 
@@ -122,40 +113,38 @@ class MazeGenerator:
         neighbours, and backtracking (popping the stack) at dead ends.
         """
         visited: set[tuple[int, int]] = set()
-        # Treat any "42" pattern cells as already visited so DFS never
-        # carves into them. (Empty until _embed_pattern is implemented.)
-        visited.update(self.pattern_cells)
+        visited.update(self.pattern_cells)  # treat 42 cells as already visited
 
-        # The stack holds the path from entry to the current cell.
+        # stack tracks the current path from entry to where we are now
         stack: list[tuple[int, int]] = [self.entry]
         visited.add(self.entry)
 
         directions = list(DIRECTION_DELTA.keys())
 
         while stack:
-            x, y = stack[-1]            # current cell = top of the stack
-            random.shuffle(directions)  # try the four directions randomly
-
+            x, y = stack[-1]  # current cell is always the top of the stack
+            random.shuffle(directions)
             moved = False
+            # try each direction until we find an unvisited neighbour
             for direction in directions:
                 dx, dy = DIRECTION_DELTA[direction]
-                nx, ny = x + dx, y + dy
+                nx, ny = x + dx, y + dy  # coordinates of the neighbour
 
                 if (
-                    0 <= nx < self.width
+                    0 <= nx < self.width    # neighbour is inside the grid
                     and 0 <= ny < self.height
-                    and (nx, ny) not in visited
+                    and (nx, ny) not in visited  # neighbour not yet carved
                 ):
-                    # Knock down the shared wall on BOTH cells.
+                    # remove wall on both sides
                     self.grid[y][x] &= ~direction
                     self.grid[ny][nx] &= ~OPPOSITE[direction]
                     visited.add((nx, ny))
-                    stack.append((nx, ny))  # step forward
+                    stack.append((nx, ny))  # move into the neighbour
                     moved = True
-                    break
+                    break  # stop trying directions we already moved
 
             if not moved:
-                stack.pop()                 # dead end -> back up
+                stack.pop()  # backtrack
 
     def _embed_pattern(self) -> None:
         """Mark cells that draw '42' as obstacles. Fills self.pattern_cells.
@@ -167,11 +156,11 @@ class MazeGenerator:
             print("Error: maze too small for '42' pattern, skipping.")
             return
 
-        # Centre the whole "42" block inside the maze.
+        # centre the 42 block in the maze
         offset_x = (self.width - _PATTERN_W) // 2
         offset_y = (self.height - _PATTERN_H) // 2
 
-        # Stamp each digit. The "2" starts one digit-width + gap to the right.
+        # stamp each digit, 2 is shifted right by one digit width + gap
         for bitmap, digit_offset_x in [(_FOUR, 0), (_TWO, _DIGIT_W + _GAP)]:
             for row in range(5):
                 for col in range(3):
@@ -188,13 +177,13 @@ class MazeGenerator:
         wall removal that would open up a 3x3 fully-open area (keeps it
         looking like a maze, not a room).
         """
-        # Gather every still-closed wall between two non-obstacle cells.
-        candidates: list[tuple[int, int, int]] = []  # (x, y, direction)
+        candidates: list[tuple[int, int, int]] = []  # x y direction
+        # scan every cell and collect walls we could knock down
         for y in range(self.height):
             for x in range(self.width):
-                # skip 42 cells
                 if (x, y) in self.pattern_cells:
-                    continue
+                    continue  # never touch 42 cells
+                # only check east and south to avoid adding each wall twice
                 if (x + 1 < self.width
                         and (x + 1, y) not in self.pattern_cells
                         and self.grid[y][x] & EAST):
@@ -204,17 +193,18 @@ class MazeGenerator:
                         and self.grid[y][x] & SOUTH):
                     candidates.append((x, y, SOUTH))
 
-        random.shuffle(candidates)
-        target = max(1, (self.width * self.height) // 10)
+        random.shuffle(candidates)  # random order
+        target = max(1, (self.width * self.height) // 10)  # 10% of total cells
         removed = 0
 
+        # knock down walls until we hit the target
         for x, y, direction in candidates:
             if removed >= target:
                 break
             dx, dy = DIRECTION_DELTA[direction]
             nx, ny = x + dx, y + dy
             if self._would_create_open_area(x, y, nx, ny, direction):
-                continue
+                continue  # skip this wall it would make a room
             self.grid[y][x] &= ~direction
             self.grid[ny][nx] &= ~OPPOSITE[direction]
             removed += 1
@@ -223,21 +213,24 @@ class MazeGenerator:
         self, x: int, y: int, nx: int, ny: int, direction: int
     ) -> bool:
         """True if removing this wall would create a 3x3 fully-open area."""
-        # Tentatively remove the wall, test, then restore it.
+        # temporarily remove the wall test then restore
         self.grid[y][x] &= ~direction
         self.grid[ny][nx] &= ~OPPOSITE[direction]
 
         found = False
+        # check both cells touching the removed wall
         for cx, cy in [(x, y), (nx, ny)]:
+            # slide a 3x3 window up and down around this cell
             for top in range(cy - 2, cy + 1):
+                # slide the window left and right
                 for left in range(cx - 2, cx + 1):
                     if self._is_open_3x3(left, top):
                         found = True
-                        break
+                        break  # no need to check more positions
                 if found:
                     break
             if found:
-                break
+                break  # no need to check the second cell
 
         self.grid[y][x] |= direction
         self.grid[ny][nx] |= OPPOSITE[direction]
@@ -250,12 +243,12 @@ class MazeGenerator:
         if left < 0 or top < 0 or right >= self.width or bottom >= self.height:
             return False
 
-        # No East walls between horizontally-adjacent cells in the block.
+        # check no east walls horizontally
         for row in range(top, bottom + 1):
             for col in range(left, right):
                 if self.grid[row][col] & EAST:
                     return False
-        # No South walls between vertically-adjacent cells in the block.
+        # check no south walls vertically
         for row in range(top, bottom):
             for col in range(left, right + 1):
                 if self.grid[row][col] & SOUTH:
