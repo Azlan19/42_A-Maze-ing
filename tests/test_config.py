@@ -1,5 +1,5 @@
 import pytest
-from config import parse_config, MazeConfig
+from config import parse_config  # MazeConfig
 
 
 def test_valid_config(tmp_path):
@@ -31,7 +31,8 @@ def test_comments_ignored(tmp_path):
 
 def test_missing_key_raises(tmp_path):
     cfg_file = tmp_path / "config.txt"
-    cfg_file.write_text("WIDTH=5\nHEIGHT=5\nENTRY=0,0\nEXIT=4,4\nPERFECT=True\n")
+    cfg_file.write_text(
+        "WIDTH=5\nHEIGHT=5\nENTRY=0,0\nEXIT=4,4\nPERFECT=True\n")
     with pytest.raises(ValueError, match="OUTPUT_FILE"):
         parse_config(str(cfg_file))
 

@@ -9,6 +9,7 @@ _DIRECTION_TO_CHAR: dict[int, str] = {
     WEST:  "W",
 }
 
+
 def solve(
     grid: list[list[int]],
     entry: tuple[int, int],
@@ -22,25 +23,29 @@ def solve(
     if entry == exit:
         return []
 
-    visited: set[tuple[int, int]] = {entry} # Tracks which cells have been seen
-    parent: dict[tuple[int, int], tuple[tuple[int, int], int]] = {} # Maps each cell to (the cell we came from, the direction we took)
-    queue: deque[tuple[int, int]] = deque([entry]) # Start with the entry cell
+    # Tracks which cells have been seen
+    visited: set[tuple[int, int]] = {entry}
+    # Maps each cell to (the cell we came from, the direction we took)
+    parent: dict[tuple[int, int], tuple[tuple[int, int], int]] = {}
+    queue: deque[tuple[int, int]] = deque([entry])  # Start with the entry cell
 
     while queue:
-        x, y = queue.popleft() # Processes 1 cell at a time from the beginning
+        x, y = queue.popleft()  # Processes 1 cell at a time from the beginning
 
         if (x, y) == exit:
-            return _reconstruct_path(parent, entry, exit) # Return path with helper function
+            # Return path with helper function
+            return _reconstruct_path(parent, entry, exit)
 
         for direction, (dx, dy) in DIRECTION_DELTA.items():
-            if grid[y][x] & direction: # If wall, continue
+            if grid[y][x] & direction:  # If wall, continue
                 continue
-            nx, ny = x + dx, y + dy # set neighbour coordinates
+            nx, ny = x + dx, y + dy  # set neighbour coordinates
             if 0 <= nx < width and 0 <= ny < height and (nx, ny) not in visited:
                 visited.add((nx, ny))
                 parent[(nx, ny)] = ((x, y), direction)
-                queue.append((nx, ny)) # Added to the back of the queue to be processed
-    
+                # Added to the back of the queue to be processed
+                queue.append((nx, ny))
+
     return []
 
 

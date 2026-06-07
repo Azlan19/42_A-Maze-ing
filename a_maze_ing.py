@@ -1,5 +1,5 @@
 import sys
-import os
+# import os
 
 from config import parse_config, MazeConfig
 from mazegen.generator import MazeGenerator
@@ -12,10 +12,11 @@ def _clear() -> None:
     sys.stdout.write("\033[2J\033[H")
     sys.stdout.flush()
     # os.system("clear")
-    # print("\033[2J\033[H", end="") 
+    # print("\033[2J\033[H", end="")
     # \033[2J — ANSI escape code that clears the entire terminal screen.
     # \033[H — moves the cursor back to the top-left corner.
-    # end="" — prevents print() from adding an extra newline after the escape codes.
+    # end="" — prevents print() from adding an extra newline after the
+    # escape codes.
 
 
 def _generate(
@@ -23,17 +24,18 @@ def _generate(
     seed: int
 ) -> tuple[MazeGenerator, list[str]]:
     mg = MazeGenerator(
-        width = cfg.width,
-        height = cfg.height,
+        width=cfg.width,
+        height=cfg.height,
         seed=seed,
-        perfect = cfg.perfect,
-        entry = cfg.entry,
-        exit = cfg.exit
+        perfect=cfg.perfect,
+        entry=cfg.entry,
+        exit=cfg.exit
     )
     mg.generate()
     path = solve(mg.grid, mg.entry, mg.exit, mg.width, mg.height)
     return mg, path
-    # Helper function because need to generate the maze twice: at startup and again every rerun
+    # Helper function because need to generate the maze twice:
+    # at startup and again every rerun
 
 
 def main() -> None:
@@ -42,12 +44,12 @@ def main() -> None:
         sys.exit(1)
 
     cfg = parse_config(sys.argv[1])
-    
+
     if cfg.seed is not None:
         seed = cfg.seed
     else:
         seed = 0
-    
+
     mg, path = _generate(cfg, seed)
     write_output(mg.grid, mg.entry, mg.exit, path, cfg.output_file)
     wall_colour_index = 0

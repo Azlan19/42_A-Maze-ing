@@ -1,7 +1,9 @@
 from mazegen.generator import NORTH, EAST, SOUTH, WEST, DIRECTION_DELTA
 
 # Ansi color code
-RESET = "\033[0m" # Every color must be followed by RESET to stop color bleeding into next character
+# Every color must be followed by RESET to stop color -
+# bleeding into next character
+RESET = "\033[0m"
 MAGENTA = "\033[35m"
 RED = "\033[31m"
 CYAN = "\033[36m"
@@ -28,7 +30,8 @@ def _path_cells(
     entry: tuple[int, int],
     path: list[str]
 ) -> set[tuple[int, int]]:
-    """Convert direction letters into the set of cells the path passes through"""
+    """Convert direction letters into the
+    set of cells the path passes through"""
     cells: set[tuple[int, int]] = {entry}
     x, y = entry
     for letter in path:
@@ -67,7 +70,9 @@ def _top_border(
     """Build the horizontal border line above a given row"""
     output = wall_colour + "+" + RESET
     for col in range(width):
-        if row == 0 or grid[row][col] & NORTH: # row == 0 always writes the wall, grid[row][col] & NORTH writes if NORTH is a wall
+        # row == 0 always writes the wall,
+        # grid[row][col] & NORTH writes if NORTH is a wall
+        if row == 0 or grid[row][col] & NORTH:
             output += wall_colour + "--+" + RESET
         else:
             output += "  " + wall_colour + "+" + RESET
@@ -123,16 +128,16 @@ def render(
         path_cells = _path_cells(entry, path)
     else:
         path_cells = set()
-    
+
     lines: list[str] = []
 
     for row in range(height):
         lines.append(_top_border(grid, width, row, wall_colour))
-        lines.append(_cell_line(grid, width, row, entry, exit, path_cells, pattern_cells, wall_colour))
-    
+        lines.append(_cell_line(grid, width, row, entry, exit,
+                     path_cells, pattern_cells, wall_colour))
+
     lines.append(_bottom_border(width, wall_colour))
     print("\n".join(lines))
-
 
 
 # from mazegen.generator import MazeGenerator
