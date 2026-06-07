@@ -34,8 +34,8 @@ DIRECTION_DELTA: dict[int, tuple[int, int]] = {
 
 # "4"
 _FOUR: list[list[int]] = [
-    [1, 0, 0],
-    [1, 0, 0],
+    [1, 0, 1],
+    [1, 0, 1],
     [1, 1, 1],
     [0, 0, 1],
     [0, 0, 1],
